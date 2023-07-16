@@ -1,0 +1,7 @@
+.submenu > div {
+  /* padding-left: 40px; */
+  padding-left: 72px;
+}
+.akis > div {
+  min-width: 240px;
+}
