@@ -1,6 +1,5 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -10,6 +9,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import Alert from "@mui/material/Alert";
+import { useRouter, usePathname } from "next/navigation";
 
 //services
 import { login } from "../../services/login";
@@ -17,7 +17,8 @@ import { login } from "../../services/login";
 const LoginForm = function LoginForm() {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const passwordRef = useRef<HTMLInputElement | null>(null);
-  const { push } = useRouter();
+  const { push, refresh } = useRouter();
+  const pathname = usePathname();
   const [error, setError] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -35,7 +36,11 @@ const LoginForm = function LoginForm() {
         response.validUser[0] &&
         response.validUser[0].u_ut_id === 1
       ) {
-        push("/admin/dashboard");
+        if (pathname !== "/login") {
+          refresh();
+        } else {
+          push("/admin/dashboard");
+        }
       } else if (
         response &&
         response.validUser &&

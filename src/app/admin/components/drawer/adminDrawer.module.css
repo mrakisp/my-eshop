@@ -1,0 +1,15 @@
+/* .submenu > div {
+  padding-left: 72px;
+} */
+
+.sidebar > div {
+  min-width: 240px;
+}
+
+.navRightArea {
+  margin-left: auto;
+}
+
+.activeLink {
+  background-color: #d9ecff;
+}

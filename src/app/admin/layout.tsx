@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import SideBar from "./components/sidebar";
+
+import AdminDrawer from "./components/drawer/adminDrawer";
+import LoginForm from "../login/components/LoginForm";
 
 import styles from "./layout.module.css";
 
@@ -16,16 +18,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = cookies();
-  const theme = cookieStore.get("logged_in");
+  const loggedInToken = cookieStore.get("logged_in");
+
   return (
     <>
-      {theme?.value === process.env.ADMIN_TOKEN ? (
-        <main className={styles.mainArea}>
-          <SideBar />
-          {children}
-        </main>
+      {!loggedInToken ? (
+        <LoginForm />
+      ) : loggedInToken?.value === process.env.ADMIN_TOKEN ? (
+        <>
+          <main className={styles.mainArea}>
+            <AdminDrawer />
+            {children}
+          </main>
+        </>
       ) : (
-        <div>"You are not Admin"</div>
+        <div>"You are not Admin. Access Prohibited!"</div>
       )}
     </>
   );

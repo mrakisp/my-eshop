@@ -1,6 +1,8 @@
 import InventoryIcon from "@mui/icons-material/Inventory";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import ReceiptIcon from "@mui/icons-material/Receipt";
+import SupervisedUserCircleIcon from "@mui/icons-material/SupervisedUserCircle";
 
 export const MenuItems = [
   {
@@ -10,24 +12,57 @@ export const MenuItems = [
     enabled: true,
   },
   {
+    title: "Orders",
+    value: "orders",
+    icon: <ReceiptIcon />,
+    enabled: true,
+  },
+  {
     title: "Products",
     value: "products",
     icon: <InventoryIcon />,
     enabled: true,
+    subMenu: [
+      {
+        title: "New Product",
+        value: "product",
+        icon: <AddCircleOutlineIcon />,
+        enabled: true,
+      },
+      {
+        title: "Categories",
+        value: "/products/categories",
+        icon: <InventoryIcon />,
+        enabled: true,
+      },
+      {
+        title: "Attributes",
+        value: "/products/attributes",
+        icon: <InventoryIcon />,
+        enabled: true,
+      },
+    ],
   },
+
   {
-    title: "New Product",
-    value: "product",
-    icon: <AddCircleOutlineIcon />,
+    title: "Users",
+    value: "users",
+    icon: <SupervisedUserCircleIcon />,
     enabled: true,
   },
+
   {
-    title: "New ",
-    value: "products",
+    title: "Test",
+    value: "test",
     icon: <InventoryIcon />,
     enabled: false,
     subMenu: [
-      { title: "New Product", value: "newproducts", icon: <InventoryIcon /> },
+      {
+        title: "Test Submenu",
+        value: "testsubmenu",
+        icon: <InventoryIcon />,
+        enabled: false,
+      },
     ],
   },
 ];
