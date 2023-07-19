@@ -34,7 +34,7 @@ const LoginForm = function LoginForm() {
         response &&
         response.validUser &&
         response.validUser[0] &&
-        response.validUser[0].u_ut_id === 1
+        response.validUser[0].role_id === 1
       ) {
         if (pathname !== "/login") {
           refresh();
@@ -45,7 +45,7 @@ const LoginForm = function LoginForm() {
         response &&
         response.validUser &&
         response.validUser[0] &&
-        response.validUser[0].u_ut_id === 2
+        response.validUser[0].role_id === 2
       ) {
         push("/");
       } else {

@@ -13,10 +13,10 @@ export const GET = async (req: Request) => {
 
   const offset = (pageNumber - 1) * pageSize;
 
-  const products = (await query({
+  const products = await query({
     query: "SELECT * FROM products LIMIT ?, ?",
     values: [offset, pageSize],
-  })) as RowDataPacket[];
+  });
 
   return NextResponse.json({ products });
 };

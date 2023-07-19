@@ -40,27 +40,24 @@ export const POST = async (req: Request, res: Response) => {
   const requestBody = await req.json();
   const email = requestBody.email;
   const password = requestBody.password;
-  let validUser: any = [];
+  let validUser;
 
   if (password && email) {
     const user = (await query({
-      query: "SELECT * FROM users_new WHERE u_email = ? ",
+      query: "SELECT * FROM users WHERE email = ? ",
       values: [email],
     })) as RowDataPacket[];
 
     if (user && user.length > 0) {
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        user[0].u_password
-      );
+      const isPasswordValid = await bcrypt.compare(password, user[0].password);
       if (isPasswordValid) {
         validUser = user;
-        setLogInCookie(user[0].u_ut_id);
+        setLogInCookie(user[0].role_id);
       } else {
         removeLogInCookie();
       }
     } else {
-      validUser = [{ errorMessage: "wrong credentials" }];
+      validUser = { errorMessage: "wrong credentials" };
     }
   }
 

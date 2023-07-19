@@ -1,0 +1,73 @@
+.tableHead {
+  display: flex;
+  align-items: center;
+  & > div:not(.headCheckbox, .headImage, .headDescr) {
+    width: 150px;
+    padding-left: 15px;
+    margin: 0 15px;
+  }
+
+  & .headCheckbox {
+    padding-left: 0;
+    margin-left: -2px;
+  }
+
+  & .actionsHead {
+    margin-left: auto !important;
+    text-align: right;
+  }
+
+  & .headImage {
+    margin-right: 15px;
+    margin-left: 20px;
+  }
+
+  & .headDescr {
+    padding-left: 10px;
+  }
+}
+
+.categoryTable {
+  display: flex;
+  flex-direction: column;
+}
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  & > div:not(.checkbox, .image, .description) {
+    width: 150px;
+    margin: 0 15px;
+  }
+}
+
+.childCategory {
+  & .name {
+    margin-left: 5px;
+    &:before {
+      content: "—";
+      padding-right: 10px;
+    }
+  }
+}
+
+.description {
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 250px;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  margin-left: auto !important;
+  display: flex;
+  & > div {
+    margin-left: auto;
+  }
+}
+
+.image {
+  height: 40px;
+  width: 40px;
+  margin-right: 40px;
+}

@@ -9,11 +9,11 @@ export const GET = async (
   const id = params.id;
 
   const product = (await query({
-    query: "SELECT * FROM products WHERE pr_id = ?",
+    query: "SELECT * FROM products WHERE id = ?",
     values: [id[0]],
   })) as RowDataPacket[];
 
-  return NextResponse.json({ product });
+  return NextResponse.json(product);
 };
 
 export const POST = async (req: Request, res: Response) => {

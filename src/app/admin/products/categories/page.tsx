@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
-import AddCategory from "./components/addCategory";
-import CategoriesList from "./components/categoriesList";
+import { useState, useEffect } from "react";
+
 import {
   Grid,
   Button,
@@ -11,14 +10,33 @@ import {
   Typography,
 } from "@mui/material";
 
+import AddCategory from "./components/addCategory";
+import CategoriesTable from "./components/categoriesTable";
+import Search from "@/admin/components/search/search";
+import { ICategories } from "@/types/categoriesTypes";
+import { getCategories } from "@/services/categories";
+
 export default function Categories() {
   const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState<ICategories[]>([]);
+
+  useEffect(() => {
+    setIsLoading(true);
+    getCategories().then((response: ICategories[]) => {
+      setCategories(response);
+      setIsLoading(false);
+    });
+  }, []);
 
   const handleSaveNewCategory = (
     parentCategory: string,
     categoryName: string,
     categoryDescr: string
   ) => {};
+
+  const handleSearch = (searchValue: string) => {
+    console.log(searchValue);
+  };
 
   return (
     <>
@@ -34,7 +52,8 @@ export default function Categories() {
         </Grid>
         <Grid item xs={12} md={6} lg={7}>
           <Paper elevation={3} sx={{ padding: "15px 25px" }}>
-            <CategoriesList />
+            <Search handleSearch={handleSearch} />
+            <CategoriesTable data={categories} isLoading={isLoading} />
           </Paper>
         </Grid>
       </Grid>

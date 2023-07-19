@@ -25,6 +25,10 @@
       "@/lib/*": ["lib/*"],
       "@/hooks/*": ["hooks/*"],
       "@/services/*": ["services/*"],
+      "@/types/*": ["types/*"],
+      "@/assets/*": ["assets/*"],
+      "@/admin/*": ["admin/*"],
+      "@/shop/*": ["shop/*"],
       "@/config/*": ["config"]
     }
   },

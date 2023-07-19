@@ -29,7 +29,11 @@ const RegisterForm = function RegisterForm({}) {
     };
 
     register(req).then((response: any) => {
-      push("/login");
+      if (response) {
+        push("/login");
+      } else {
+        setError(true);
+      }
     });
   };
 

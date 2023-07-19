@@ -9,10 +9,10 @@ export default function Dashboard() {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    getProductsTabs().then((response: any) => {
-      setIsLoading(false);
-      setData(response.tabs);
-    });
+    // getProductsTabs().then((response: any) => {
+    //   setIsLoading(false);
+    //   setData(response.tabs);
+    // });
   }, []);
 
   return (
