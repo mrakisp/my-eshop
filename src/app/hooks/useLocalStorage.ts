@@ -55,39 +55,3 @@ export default function useLocalStorage<T>(
 
   return [storedValue, setValue];
 }
-
-// import { useEffect, useState } from "react";
-
-// export default function useLocalStorage<T>(
-//   key: string,
-//   initialValue: T
-// ): [T, (value: T | ((val: T) => T)) => void] {
-//   const valueFromStorage = localStorage.getItem(key);
-//   const [value, setValue] = useState(() => {
-//     let parsedSavedValue;
-//     if (valueFromStorage) {
-//       parsedSavedValue = JSON.parse(valueFromStorage);
-//       return parsedSavedValue;
-//     }
-
-//     if (initialValue instanceof Function) return initialValue();
-
-//     return valueFromStorage || initialValue;
-//   });
-
-//   useEffect(() => {
-//     localStorage.setItem(key, JSON.stringify(value));
-//   }, [key, value]);
-
-//   // useEffect(() => {
-//   //   if (valueFromStorage) setValue(JSON.parse(valueFromStorage));
-//   // }, [valueFromStorage]);
-
-//   useEffect(() => {
-//     if (valueFromStorage) setValue(JSON.parse(valueFromStorage));
-//     const parsedSavedValue = localStorage.getItem(key);
-//     if (parsedSavedValue) setValue(JSON.parse(parsedSavedValue));
-//   }, [valueFromStorage]);
-
-//   return [value, setValue];
-// }

@@ -41,12 +41,32 @@
   }
 }
 
+.highlighted {
+  background-color: aliceblue;
+}
 .childCategory {
   & .name {
     margin-left: 5px;
     &:before {
       content: "—";
       padding-right: 10px;
+    }
+  }
+
+  & .childCategory {
+    & .name {
+      &:before {
+        content: "——";
+        padding-right: 10px;
+      }
+    }
+    & .childCategory {
+      & .name {
+        &:before {
+          content: "———";
+          padding-right: 10px;
+        }
+      }
     }
   }
 }

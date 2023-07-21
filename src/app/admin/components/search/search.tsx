@@ -1,16 +1,17 @@
 "use client";
-import { useState } from "react";
-import { IconButton, InputBase, Paper } from "@mui/material";
+import { useState, useEffect } from "react";
+import { IconButton, InputBase, Paper, Divider, Tooltip } from "@mui/material";
 
-// import styles from "./adminDrawer.module.css";
-
+import ClearIcon from "@mui/icons-material/Clear";
 import SearchIcon from "@mui/icons-material/Search";
+import InfoIcon from "@mui/icons-material/Info";
 
 interface SearchProps {
   handleSearch: (searchValue: string) => void;
+  reset: boolean;
 }
 
-export default function Search({ handleSearch }: SearchProps) {
+export default function Search({ handleSearch, reset }: SearchProps) {
   const [searchText, setSearchText] = useState("");
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,9 +20,31 @@ export default function Search({ handleSearch }: SearchProps) {
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      event.preventDefault(); // Prevent page refresh
+      event.preventDefault();
       handleSearch(searchText);
     }
+    if (event.key === "Escape") {
+      handleClearSearch();
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchText("");
+    handleSearch("");
+  };
+
+  useEffect(() => {
+    if (reset) handleClearSearch();
+  }, [reset]);
+
+  const InfoTitle = () => {
+    return (
+      <>
+        Press "Enter" to trigger search
+        <br />
+        Press "Esc" to clear the search
+      </>
+    );
   };
 
   return (
@@ -36,9 +59,15 @@ export default function Search({ handleSearch }: SearchProps) {
         marginBottom: "10px",
       }}
     >
+      <Tooltip title={<InfoTitle />}>
+        <IconButton>
+          <InfoIcon />
+        </IconButton>
+      </Tooltip>
       <InputBase
         sx={{ ml: 1, flex: 1 }}
         placeholder="Search"
+        value={searchText}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
       />
@@ -49,6 +78,19 @@ export default function Search({ handleSearch }: SearchProps) {
       >
         <SearchIcon />
       </IconButton>
+
+      {searchText && (
+        <>
+          <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+          <IconButton
+            color="primary"
+            sx={{ p: "10px" }}
+            onClick={() => handleClearSearch()}
+          >
+            <ClearIcon />
+          </IconButton>
+        </>
+      )}
     </Paper>
   );
 }

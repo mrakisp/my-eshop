@@ -22,23 +22,49 @@ export const GET = async (req: Request) => {
 };
 
 export const POST = async (req: Request, res: Response) => {
-  // const requestBody = await req.json();
-  // const email = requestBody.email;
-  // const dbQuery = `INSERT INTO users (email, password, role_id)
-  // SELECT ?, ?, ?
-  // FROM DUAL
-  // WHERE NOT EXISTS (SELECT email FROM users WHERE email = ?)`;
-  // let registeredUser = false;
-  // await query({
-  //   query: dbQuery,
-  //   values: [email, hashedPassword, 2, email],
-  // })
-  //   .then((response: any) => {
-  //     if (response.affectedRows === 1) registeredUser = true;
-  //   })
-  //   .catch((error) => {
-  //     console.error(error);
-  //   });
-  // // redirect('https://nextjs.org/')
-  // return NextResponse.json(registeredUser);
+  const { searchParams } = new URL(req.url);
+  const type = searchParams.get("type");
+
+  const requestBody = await req.json();
+  const categoryName = requestBody.categoryName;
+  const categoryDescr = requestBody.categoryDescr
+    ? requestBody.categoryDescr
+    : null;
+  const parentCategory = requestBody.parentCategory
+    ? requestBody.parentCategory
+    : null;
+  const categoryId = requestBody.categoryId;
+
+  let message = { completed: false, error: "" };
+  let dbQuery;
+  let Qvalues;
+
+  if (type === "update") {
+    dbQuery = `UPDATE product_categories SET category_name = ?, category_description = ?, parent_category_id = ? WHERE category_id = ?`;
+    Qvalues = [categoryName, categoryDescr, parentCategory, categoryId];
+  } else if (type === "delete") {
+    dbQuery = `DELETE FROM product_categories WHERE category_id = ?`; //if category has child categories it will be deleted
+    Qvalues = [categoryId];
+  } else {
+    dbQuery = `INSERT INTO product_categories (category_name, category_description, parent_category_id) VALUES (?, ?, ?)`;
+    Qvalues = [categoryName, categoryDescr, parentCategory];
+  }
+
+  await query({
+    query: dbQuery,
+    values: Qvalues,
+  })
+    .then((response: any) => {
+      if (response.affectedRows === 1) {
+        message = { completed: true, error: "" };
+      } else {
+        message = { completed: false, error: response.error };
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      message = { completed: false, error: err };
+    });
+
+  return NextResponse.json(message);
 };

@@ -11,7 +11,10 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+
+import { removeAccents } from "@/utils/utils";
 import { ICategories } from "@/types/categoriesTypes";
+
 import styles from "./categoriesTable.module.scss";
 
 import placeholder from "@/assets/placeholder.png";
@@ -19,9 +22,16 @@ import placeholder from "@/assets/placeholder.png";
 interface CategoryProps {
   data: ICategories[];
   isLoading: boolean;
+  searchCategory?: string;
+  handleEdit: (categoryId: number) => void;
 }
 
-export default function CategoriesTable({ data, isLoading }: CategoryProps) {
+export default function CategoriesTable({
+  data,
+  isLoading,
+  searchCategory,
+  handleEdit,
+}: CategoryProps) {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [isTableHeadChecked, setIsTableHeadChecked] = useState(false);
 
@@ -68,7 +78,14 @@ export default function CategoriesTable({ data, isLoading }: CategoryProps) {
     return childCategories.map((category) => (
       <div
         key={category.category_id}
-        className={isChild ? styles.childCategory : styles.parentCategory}
+        className={`${isChild ? styles.childCategory : styles.parentCategory} ${
+          searchCategory &&
+          removeAccents(category.category_name.toLowerCase()).includes(
+            removeAccents(searchCategory.toLowerCase())
+          )
+            ? styles.highlighted
+            : ""
+        }`}
       >
         <div className={styles.categoryRow}>
           <div className={styles.checkbox}>
@@ -89,12 +106,10 @@ export default function CategoriesTable({ data, isLoading }: CategoryProps) {
                   ? category.category_image_url
                   : placeholder
               }
-              // fill={true}
               width={40}
               height={40}
-              alt="Picture of the author"
+              alt={category.category_name}
               quality={50}
-              // placeholder="blur"
             />
           </div>
           <div className={styles.name}>{category.category_name}</div>
@@ -105,7 +120,10 @@ export default function CategoriesTable({ data, isLoading }: CategoryProps) {
           </div>
           <div className={styles.actions}>
             <Stack direction="row" spacing={1}>
-              <IconButton aria-label="edit">
+              <IconButton
+                aria-label="edit"
+                onClick={() => handleEdit(category.category_id)}
+              >
                 <EditIcon />
               </IconButton>
               <IconButton aria-label="delete">
