@@ -8,12 +8,15 @@ import {
   Skeleton,
   IconButton,
   Stack,
+  Button,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
 import { removeAccents } from "@/utils/utils";
 import { ICategories } from "@/types/categoriesTypes";
+
+import ModalDialog from "@/admin/components/dialog/ModalDialog";
 
 import styles from "./categoriesTable.module.scss";
 
@@ -24,6 +27,8 @@ interface CategoryProps {
   isLoading: boolean;
   searchCategory?: string;
   handleEdit: (categoryId: number) => void;
+  handleDelete: (categoryId: number) => void;
+  handleDeleteMass: (categoryIds: number[]) => void;
 }
 
 export default function CategoriesTable({
@@ -31,9 +36,12 @@ export default function CategoriesTable({
   isLoading,
   searchCategory,
   handleEdit,
+  handleDelete,
+  handleDeleteMass,
 }: CategoryProps) {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [isTableHeadChecked, setIsTableHeadChecked] = useState(false);
+  const [isConfirmedDialogOpen, setIsConfirmedDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isTableHeadChecked) {
@@ -61,6 +69,11 @@ export default function CategoriesTable({
 
   const handleTableHeadCheckboxChange = () => {
     setIsTableHeadChecked(!isTableHeadChecked);
+  };
+
+  const handleCloseDialog = () => {
+    console.log(data);
+    setIsConfirmedDialogOpen(false);
   };
 
   const renderCategories = (
@@ -103,7 +116,7 @@ export default function CategoriesTable({
             <Image
               src={
                 category.category_image_url
-                  ? category.category_image_url
+                  ? "/" + category.category_image_url
                   : placeholder
               }
               width={40}
@@ -113,7 +126,10 @@ export default function CategoriesTable({
             />
           </div>
           <div className={styles.name}>{category.category_name}</div>
-          <div className={styles.description}>
+          <div
+            className={styles.description}
+            title={category.category_description}
+          >
             {category.category_description
               ? category.category_description
               : "-"}
@@ -122,11 +138,26 @@ export default function CategoriesTable({
             <Stack direction="row" spacing={1}>
               <IconButton
                 aria-label="edit"
+                disabled={selectedCategories.length > 1}
                 onClick={() => handleEdit(category.category_id)}
               >
                 <EditIcon />
               </IconButton>
-              <IconButton aria-label="delete">
+              <IconButton
+                aria-label="delete"
+                color="error"
+                disabled={selectedCategories.length > 1}
+                // onClick={() => handleDelete(category.category_id)}
+                onClick={() => {
+                  if (
+                    !selectedCategories?.find(
+                      (item) => item === category.category_id
+                    )
+                  )
+                    handleCheckboxChange(category.category_id);
+                  setIsConfirmedDialogOpen(true);
+                }}
+              >
                 <DeleteIcon />
               </IconButton>
             </Stack>
@@ -139,6 +170,18 @@ export default function CategoriesTable({
 
   return (
     <div>
+      {selectedCategories?.length > 1 && (
+        <Button
+          onClick={() => setIsConfirmedDialogOpen(true)}
+          // onClick={() => handleDeleteMass(selectedCategories)}
+          className={styles.deleteAll}
+          variant="outlined"
+          color="error"
+          startIcon={<DeleteIcon />}
+        >
+          Delete Selected Categories
+        </Button>
+      )}
       <div className={styles.tableHead}>
         <Checkbox
           className={styles.headCheckbox}
@@ -152,6 +195,38 @@ export default function CategoriesTable({
       </div>
       <Divider />
       {isLoading ? <Skeleton height={300} /> : renderCategories(null)}
+      <ModalDialog
+        title={`Are you sure you want to delete "${selectedCategories?.map(
+          (categoryId) =>
+            data?.find((item) => item.category_id === categoryId)
+              ?.category_name || null
+        )}"`}
+        open={isConfirmedDialogOpen}
+        handleCloseDialog={handleCloseDialog}
+      >
+        <Stack direction="row" spacing={2}>
+          <Button variant="contained" onClick={handleCloseDialog}>
+            No
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              selectedCategories?.length > 1
+                ? handleDeleteMass(selectedCategories)
+                : handleDelete(selectedCategories[0]);
+              setIsConfirmedDialogOpen(false);
+            }}
+            // onClick={() =>
+            //   selectedCategories?.length > 1
+            //     ? handleDeleteMass(selectedCategories)
+            //     : handleDelete(selectedCategories[0])
+            // }
+          >
+            Yes
+          </Button>
+        </Stack>
+      </ModalDialog>
     </div>
   );
 }

@@ -15,6 +15,9 @@ export default function Search({ handleSearch, reset }: SearchProps) {
   const [searchText, setSearchText] = useState("");
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.value) {
+      handleSearch("");
+    }
     setSearchText(event.target.value);
   };
 
@@ -30,7 +33,6 @@ export default function Search({ handleSearch, reset }: SearchProps) {
 
   const handleClearSearch = () => {
     setSearchText("");
-    handleSearch("");
   };
 
   useEffect(() => {

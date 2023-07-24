@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { RowDataPacket } from "mysql2";
 import { query } from "@/lib/db";
+import typesGreekUtils from "greek-utils";
+// import {greekUtils} from "greek-utils"
+// const greekUtils = require('greek-utils');
 
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
@@ -34,6 +37,7 @@ export const POST = async (req: Request, res: Response) => {
     ? requestBody.parentCategory
     : null;
   const categoryId = requestBody.categoryId;
+  // const categoryImage = requestBody.categoryImage;
 
   let message = { completed: false, error: "" };
   let dbQuery;
@@ -41,13 +45,36 @@ export const POST = async (req: Request, res: Response) => {
 
   if (type === "update") {
     dbQuery = `UPDATE product_categories SET category_name = ?, category_description = ?, parent_category_id = ? WHERE category_id = ?`;
-    Qvalues = [categoryName, categoryDescr, parentCategory, categoryId];
+    Qvalues = [
+      categoryName,
+      categoryDescr,
+      parentCategory,
+      // categoryImage,
+      categoryId,
+    ];
   } else if (type === "delete") {
-    dbQuery = `DELETE FROM product_categories WHERE category_id = ?`; //if category has child categories it will be deleted
+    const childRows = (await query({
+      query:
+        "SELECT category_id FROM product_categories WHERE parent_category_id = ?",
+      values: [categoryId],
+    })) as RowDataPacket[];
+
+    if (childRows && childRows.length > 0) {
+      // Update the parent_category_id of child categories to null
+      await query({
+        query:
+          "UPDATE product_categories SET parent_category_id = NULL WHERE parent_category_id = ?",
+        values: [categoryId],
+      });
+    }
+    dbQuery = "DELETE FROM product_categories WHERE category_id = ?";
     Qvalues = [categoryId];
   } else {
-    dbQuery = `INSERT INTO product_categories (category_name, category_description, parent_category_id) VALUES (?, ?, ?)`;
-    Qvalues = [categoryName, categoryDescr, parentCategory];
+    const c_slug = typesGreekUtils
+      .toGreeklish(categoryName.replace(" ", "-"))
+      .toLowerCase();
+    dbQuery = `INSERT INTO product_categories (category_name, category_description, parent_category_id, category_slug) VALUES (?, ?, ?, ?)`;
+    Qvalues = [categoryName, categoryDescr, parentCategory, c_slug];
   }
 
   await query({

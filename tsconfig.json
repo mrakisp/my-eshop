@@ -30,6 +30,7 @@
       "@/assets/*": ["assets/*"],
       "@/admin/*": ["admin/*"],
       "@/shop/*": ["shop/*"],
+      "@/uplaods/*": ["uplaods/*"],
       "@/config/*": ["config"]
     }
   },

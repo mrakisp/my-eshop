@@ -23,7 +23,7 @@ export default function ModalDialog(props: DialogTitleProps) {
 
   return (
     <Dialog onClose={handleCloseDialog} open={open} keepMounted={false}>
-      <DialogTitle sx={{ display: "flex" }}>
+      <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
         {title}
         <IconButton sx={{ marginLeft: "auto" }} onClick={handleCloseDialog}>
           <CloseIcon />

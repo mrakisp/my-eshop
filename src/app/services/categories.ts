@@ -28,6 +28,7 @@ export async function addCategory(
   categoryName: string,
   categoryDescr: string | null,
   parentCategory: number | null
+  // categoryImage: string | null
 ) {
   const postData = {
     method: "POST",
@@ -82,6 +83,22 @@ export async function deleteCategory(categoryId: number) {
   };
 
   const res = await fetch(`/api/categories?type=delete`, postData);
+
+  return res.json();
+}
+
+export async function deleteCategories(categoryIds: number[]) {
+  const postData = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      categoryIds: categoryIds,
+    }),
+  };
+
+  const res = await fetch(`/api/categories/deleteMass`, postData);
 
   return res.json();
 }

@@ -16,6 +16,8 @@ import {
   getCategory,
   addCategory,
   updateCategory,
+  deleteCategory,
+  deleteCategories,
 } from "@/services/categories";
 
 export default function Categories() {
@@ -23,6 +25,7 @@ export default function Categories() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCategoryAdded, setIsCategoryAdded] = useState(false);
   const [isCategoryUpdated, setIsCategoryUpdated] = useState(false);
+  const [isCategoryDeleted, setIsCategoryDeleted] = useState(false);
   const [categories, setCategories] = useState<ICategories[]>([]);
   const [searchCategory, setSearchCategory] = useState<string>();
   const [isUpdateCategory, setIsUpdateCategory] = useState(false);
@@ -32,28 +35,32 @@ export default function Categories() {
     getCategories().then((response: ICategories[]) => {
       setCategories(response);
       setIsLoading(false);
+      if (searchCategory) setSearchCategory("");
     });
   };
 
-  const handleSaveNewCategory = (
+  const handleSaveNewCategory = async (
     parentCategory: number | null,
     categoryName: string,
     categoryDescr: string | null
+    // categoryImage: string | null
   ) => {
     setIsLoading(true);
 
-    addCategory(categoryName, categoryDescr, parentCategory).then(
-      (response) => {
-        if (response && response.completed) {
-          fetchCategories();
-          setSearchCategory("");
-          setIsCategoryAdded(true);
-        } else {
-          //handleError
-          //setErrorMessage(response.error.message);
-        }
+    addCategory(
+      categoryName,
+      categoryDescr,
+      parentCategory
+      // categoryImage
+    ).then((response) => {
+      if (response && response.completed) {
+        setIsCategoryAdded(true);
+        fetchCategories();
+      } else {
+        //handleError
+        //setErrorMessage(response.error.message);
       }
-    );
+    });
   };
 
   const handleUpdateCategory = (
@@ -71,8 +78,7 @@ export default function Categories() {
       if (response && response.completed) {
         setIsCategoryUpdated(true);
         setIsUpdateCategory(false);
-        setSearchCategory("");
-        //fetchCategories();
+        fetchCategories();
       } else {
         //handleError
         //setErrorMessage(response.error.message);
@@ -84,12 +90,26 @@ export default function Categories() {
     getCategory(categoryId).then((response: ICategories[]) => {
       if (response) setCategoryToBeUpdated(response[0]);
       setIsUpdateCategory(true);
+      fetchCategories();
+    });
+  };
+
+  const handleDelete = (categoryId: number) => {
+    deleteCategory(categoryId).then((response: ICategories[]) => {
+      setIsCategoryDeleted(true);
+      fetchCategories();
+    });
+  };
+
+  const handleDeleteMass = (categoryIds: number[]) => {
+    deleteCategories(categoryIds).then((response: ICategories[]) => {
+      setIsCategoryDeleted(true);
+      fetchCategories();
     });
   };
 
   const handleCloseDialog = () => {
     setIsUpdateCategory(false);
-    // fetchCategories();
   };
 
   const handleSearch = (searchValue: string) => {
@@ -128,13 +148,15 @@ export default function Categories() {
           <Paper elevation={3} sx={{ padding: "15px 25px" }}>
             <Search
               handleSearch={handleSearch}
-              reset={isCategoryAdded || isCategoryUpdated}
+              reset={isCategoryAdded || isCategoryUpdated || isCategoryDeleted}
             />
             <CategoriesTable
               data={categories}
               isLoading={isLoading}
               searchCategory={searchCategory}
               handleEdit={handleEdit}
+              handleDelete={handleDelete}
+              handleDeleteMass={handleDeleteMass}
             />
           </Paper>
         </Grid>
@@ -151,6 +173,7 @@ export default function Categories() {
           categories={categories}
         />
       </ModalDialog>
+
       <ActionMessage
         open={isCategoryAdded}
         message={"Category Added!"}
@@ -160,6 +183,11 @@ export default function Categories() {
         open={isCategoryUpdated}
         message={"Category Updated!"}
         setOpen={setIsCategoryUpdated}
+      />
+      <ActionMessage
+        open={isCategoryDeleted}
+        message={"Category Deleted!"}
+        setOpen={setIsCategoryDeleted}
       />
     </>
   );

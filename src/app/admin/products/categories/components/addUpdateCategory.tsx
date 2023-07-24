@@ -48,6 +48,11 @@ export default function AddCategory({
     isUpdateCategory && data ? data.category_id : null
   );
 
+  const defaultAutoSelectOption = { category_id: null, category_name: "None" };
+  const autoCompleteOptions = categoryId
+    ? categories.filter((category) => category.category_id !== categoryId)
+    : [defaultAutoSelectOption, ...categories];
+
   const handleSelectCategory = (
     event: React.ChangeEvent<unknown>,
     value: string,
@@ -84,7 +89,7 @@ export default function AddCategory({
         variant="outlined"
         margin="normal"
         value={categoryName}
-        helperText="Name of the category"
+        helperText="Name of the category (Required)"
         // defaultValue={isUpdateCategory && categoryName}
         onChange={(e) => setCategoryName(e.target.value)}
       />
@@ -101,11 +106,12 @@ export default function AddCategory({
       />
 
       <Autocomplete
-        sx={{ marginTop: "20px" }}
+        sx={{ marginTop: "20px", marginBottom: "20px" }}
         getOptionLabel={(option) => option.category_name}
-        options={categories}
+        // options={categories}
+        options={autoCompleteOptions}
         autoHighlight
-        value={selectedOption || null}
+        value={selectedOption || defaultAutoSelectOption}
         onChange={(_, newValue) => {
           if (newValue) {
             setParentCategory(newValue.category_id);
@@ -128,34 +134,38 @@ export default function AddCategory({
         If it should be a subcategory chose the parent one
       </FormHelperText>
 
-      {!isUpdateCategory ? (
-        <Button
-          variant="contained"
-          sx={{ marginTop: "35px" }}
-          disabled={categoryName ? false : true}
-          onClick={() =>
-            handleSave?.(parentCategory, categoryName, categoryDescr)
-          }
-        >
-          Add new Category
-        </Button>
-      ) : (
-        <Button
-          variant="contained"
-          sx={{ marginTop: "35px" }}
-          disabled={categoryName ? false : true}
-          onClick={() =>
-            handleUpdate?.(
-              parentCategory,
-              categoryName,
-              categoryDescr,
-              categoryId!
-            )
-          }
-        >
-          Update Category
-        </Button>
-      )}
+      {/* <ImageUpload onImageSelect={handleImageSelect} accept="image/*" /> */}
+
+      <div>
+        {!isUpdateCategory ? (
+          <Button
+            variant="contained"
+            sx={{ marginTop: "35px" }}
+            disabled={categoryName ? false : true}
+            onClick={() =>
+              handleSave?.(parentCategory, categoryName, categoryDescr)
+            }
+          >
+            Add new Category
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            sx={{ marginTop: "35px" }}
+            disabled={categoryName ? false : true}
+            onClick={() =>
+              handleUpdate?.(
+                parentCategory,
+                categoryName,
+                categoryDescr,
+                categoryId!
+              )
+            }
+          >
+            Update Category
+          </Button>
+        )}
+      </div>
     </>
   );
 }

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { RowDataPacket } from "mysql2";
 import { query } from "@/lib/db";
 
 export const GET = async (req: Request) => {
@@ -9,30 +8,37 @@ export const GET = async (req: Request) => {
   const product_categories = await query({
     query: `
     WITH RECURSIVE category_tree AS (
-      SELECT 
+      SELECT
         category_id,
         parent_category_id,
-        category_name
-      FROM 
+        category_name,
+        category_description,
+        category_image_url
+      FROM
         product_categories
-      WHERE 
+      WHERE
         category_name LIKE ?
       UNION ALL
-      SELECT 
+      SELECT
         pc.category_id,
         pc.parent_category_id,
-        pc.category_name
-      FROM 
+        pc.category_name,
+        pc.category_description,
+        pc.category_image_url
+      FROM
         product_categories pc
-      JOIN 
+      JOIN
         category_tree ct ON pc.category_id = ct.parent_category_id
     )
-    SELECT 
+    SELECT
       category_id,
       parent_category_id,
-      category_name
-    FROM 
+      category_name,
+      category_description,
+      category_image_url
+    FROM
       category_tree
+      GROUP BY category_id
   `,
     values: [`%${searchValue}%`],
   });
