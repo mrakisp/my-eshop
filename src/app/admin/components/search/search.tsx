@@ -28,6 +28,7 @@ export default function Search({ handleSearch, reset }: SearchProps) {
     }
     if (event.key === "Escape") {
       handleClearSearch();
+      handleSearch("");
     }
   };
 

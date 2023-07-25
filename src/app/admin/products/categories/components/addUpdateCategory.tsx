@@ -7,7 +7,11 @@ import {
   Typography,
   Autocomplete,
   AutocompleteInputChangeReason,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
 
 import { ICategories } from "@/types/categoriesTypes";
 
@@ -15,13 +19,15 @@ interface AddCategoryProps {
   handleSave?: (
     parentCategory: number | null,
     categoryName: string,
-    categoryDescr: string
+    categoryDescr: string,
+    showType: string
   ) => void;
   handleUpdate?: (
     parentCategory: number | null,
     categoryName: string,
     categoryDescr: string,
-    categoryId: number
+    categoryId: number,
+    showType: string
   ) => void;
   isUpdateCategory?: boolean;
   data?: ICategories | undefined;
@@ -47,6 +53,9 @@ export default function AddCategory({
   const [categoryId] = useState(
     isUpdateCategory && data ? data.category_id : null
   );
+  const [showType, setShowType] = useState(
+    isUpdateCategory && data ? data.category_show_type.toString() : "0"
+  ); //0 for products | 1 for subcategories
 
   const defaultAutoSelectOption = { category_id: null, category_name: "None" };
   const autoCompleteOptions = categoryId
@@ -71,6 +80,7 @@ export default function AddCategory({
     setParentCategory(null);
     setCategoryName("");
     setCategoryDescr("");
+    setShowType("0");
   };
 
   useEffect(() => {
@@ -106,7 +116,7 @@ export default function AddCategory({
       />
 
       <Autocomplete
-        sx={{ marginTop: "20px", marginBottom: "20px" }}
+        sx={{ marginTop: "20px" }}
         getOptionLabel={(option) => option.category_name}
         // options={categories}
         options={autoCompleteOptions}
@@ -134,6 +144,18 @@ export default function AddCategory({
         If it should be a subcategory chose the parent one
       </FormHelperText>
 
+      <FormControl sx={{ marginTop: "35px", minWidth: "200px" }}>
+        <InputLabel>Show</InputLabel>
+        <Select
+          value={showType}
+          label="Show"
+          onChange={(e) => setShowType(e.target.value)}
+        >
+          <MenuItem value={0}>Products</MenuItem>
+          <MenuItem value={1}>Sub Categories</MenuItem>
+        </Select>
+      </FormControl>
+
       {/* <ImageUpload onImageSelect={handleImageSelect} accept="image/*" /> */}
 
       <div>
@@ -143,7 +165,12 @@ export default function AddCategory({
             sx={{ marginTop: "35px" }}
             disabled={categoryName ? false : true}
             onClick={() =>
-              handleSave?.(parentCategory, categoryName, categoryDescr)
+              handleSave?.(
+                parentCategory,
+                categoryName,
+                categoryDescr,
+                showType
+              )
             }
           >
             Add new Category
@@ -158,7 +185,8 @@ export default function AddCategory({
                 parentCategory,
                 categoryName,
                 categoryDescr,
-                categoryId!
+                categoryId!,
+                showType
               )
             }
           >

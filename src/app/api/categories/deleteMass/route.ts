@@ -5,7 +5,7 @@ import { query } from "@/lib/db";
 export const POST = async (req: Request, res: Response) => {
   const requestBody = await req.json();
   const categoryIds = requestBody.categoryIds;
-  console.log(categoryIds);
+
   let message = { completed: false, error: "" };
   let dbQuery;
   let Qvalues;

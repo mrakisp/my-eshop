@@ -8,6 +8,7 @@ import CategoriesTable from "./components/categoriesTable";
 import ModalDialog from "@/admin/components/dialog/ModalDialog";
 import Search from "@/admin/components/search/search";
 import ActionMessage from "@/admin/components/snackBar/actionMessage";
+import PaginationBar from "@/admin/components/pagination/pagination";
 // import useErrorMessage from "@/hooks/handleError";
 import { ICategories } from "@/types/categoriesTypes";
 import {
@@ -30,19 +31,26 @@ export default function Categories() {
   const [searchCategory, setSearchCategory] = useState<string>();
   const [isUpdateCategory, setIsUpdateCategory] = useState(false);
   const [categoryToBeUpdated, setCategoryToBeUpdated] = useState<ICategories>();
+  const [pagination, setPagination] = useState({ page: 0, perPage: 30 });
+  const [paginationTotalCount, setPaginationTotalCount] = useState(0);
 
   const fetchCategories = () => {
-    getCategories().then((response: ICategories[]) => {
+    getCategories(pagination).then((response: ICategories[]) => {
       setCategories(response);
-      setIsLoading(false);
+      if (response && response[0] && "totalCategoriesCount" in response[0]) {
+        const totalCount: any = response[0];
+        setPaginationTotalCount(parseInt(totalCount.totalCategoriesCount));
+      }
       if (searchCategory) setSearchCategory("");
+      setIsLoading(false);
     });
   };
 
   const handleSaveNewCategory = async (
     parentCategory: number | null,
     categoryName: string,
-    categoryDescr: string | null
+    categoryDescr: string | null,
+    showType: string
     // categoryImage: string | null
   ) => {
     setIsLoading(true);
@@ -50,7 +58,8 @@ export default function Categories() {
     addCategory(
       categoryName,
       categoryDescr,
-      parentCategory
+      parentCategory,
+      showType
       // categoryImage
     ).then((response) => {
       if (response && response.completed) {
@@ -67,13 +76,15 @@ export default function Categories() {
     parentCategory: number | null,
     categoryName: string,
     categoryDescr: string | null,
-    categoryId: number
+    categoryId: number,
+    showType: string
   ) => {
     updateCategory(
       categoryName,
       categoryDescr,
       parentCategory,
-      categoryId
+      categoryId,
+      showType
     ).then((response) => {
       if (response && response.completed) {
         setIsCategoryUpdated(true);
@@ -129,6 +140,10 @@ export default function Categories() {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    fetchCategories();
+  }, [pagination]);
+
   return (
     <>
       <Paper elevation={3} sx={{ padding: "15px 25px", margin: "0 0 25px 0" }}>
@@ -158,6 +173,13 @@ export default function Categories() {
               handleDelete={handleDelete}
               handleDeleteMass={handleDeleteMass}
             />
+            {!searchCategory && (
+              <PaginationBar
+                pagination={pagination}
+                setPagination={setPagination}
+                paginationTotalCount={paginationTotalCount}
+              />
+            )}
           </Paper>
         </Grid>
       </Grid>

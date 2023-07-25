@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { RowDataPacket } from "mysql2";
 import { query } from "@/lib/db";
 import typesGreekUtils from "greek-utils";
-// import {greekUtils} from "greek-utils"
-// const greekUtils = require('greek-utils');
 
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
@@ -17,7 +15,12 @@ export const GET = async (req: Request) => {
   const offset = (pageNumber - 1) * pageSize;
 
   const product_categories = await query({
-    query: "SELECT * FROM product_categories  LIMIT ?, ?",
+    query: `
+    SELECT *, (SELECT COUNT(*) FROM product_categories) AS totalCategoriesCount
+    FROM product_categories
+    LIMIT ?, ?;
+  `,
+    // query: "SELECT * FROM product_categories  LIMIT ?, ?",
     values: [offset, pageSize],
   });
 
@@ -37,6 +40,8 @@ export const POST = async (req: Request, res: Response) => {
     ? requestBody.parentCategory
     : null;
   const categoryId = requestBody.categoryId;
+  const showType = requestBody.showType ? parseInt(requestBody.showType) : 0;
+
   // const categoryImage = requestBody.categoryImage;
 
   let message = { completed: false, error: "" };
@@ -44,11 +49,12 @@ export const POST = async (req: Request, res: Response) => {
   let Qvalues;
 
   if (type === "update") {
-    dbQuery = `UPDATE product_categories SET category_name = ?, category_description = ?, parent_category_id = ? WHERE category_id = ?`;
+    dbQuery = `UPDATE product_categories SET category_name = ?, category_description = ?, parent_category_id = ?, category_show_type = ? WHERE category_id = ?`;
     Qvalues = [
       categoryName,
       categoryDescr,
       parentCategory,
+      showType,
       // categoryImage,
       categoryId,
     ];
@@ -73,8 +79,8 @@ export const POST = async (req: Request, res: Response) => {
     const c_slug = typesGreekUtils
       .toGreeklish(categoryName.replace(" ", "-"))
       .toLowerCase();
-    dbQuery = `INSERT INTO product_categories (category_name, category_description, parent_category_id, category_slug) VALUES (?, ?, ?, ?)`;
-    Qvalues = [categoryName, categoryDescr, parentCategory, c_slug];
+    dbQuery = `INSERT INTO product_categories (category_name, category_description, parent_category_id, category_slug, category_show_type) VALUES (?, ?, ?, ?, ?)`;
+    Qvalues = [categoryName, categoryDescr, parentCategory, c_slug, showType];
   }
 
   await query({
