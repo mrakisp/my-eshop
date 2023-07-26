@@ -141,7 +141,7 @@ export default function AddCategory({
         )}
       />
       <FormHelperText>
-        If it should be a subcategory chose the parent one
+        If it should be a subcategory chose the parent one.
       </FormHelperText>
 
       <FormControl sx={{ marginTop: "35px", minWidth: "200px" }}>
@@ -155,6 +155,11 @@ export default function AddCategory({
           <MenuItem value={1}>Sub Categories</MenuItem>
         </Select>
       </FormControl>
+      <FormHelperText>
+        Select what the user should see in the category page. If the category
+        has a child categories and "Sub Categories" is selected here then it
+        will show them instead of products.
+      </FormHelperText>
 
       {/* <ImageUpload onImageSelect={handleImageSelect} accept="image/*" /> */}
 

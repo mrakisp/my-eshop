@@ -25,7 +25,7 @@ export const MenuItems = [
     subMenu: [
       {
         title: "New Product",
-        value: "product",
+        value: "/products/product",
         icon: <AddCircleOutlineIcon />,
         enabled: true,
       },

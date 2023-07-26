@@ -29,7 +29,9 @@ export default function ModalDialog(props: DialogTitleProps) {
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-      <DialogContent dividers>{children}</DialogContent>
+      <DialogContent dividers sx={{ minWidth: "600px" }}>
+        {children}
+      </DialogContent>
       {/* <DialogActions>
         <Button onClick={handleCloseDialog}>Cancel</Button>
         <Button onClick={handleCloseDialog}>Save</Button>

@@ -1,5 +1,5 @@
 "use client";
-
+import { useState } from "react";
 import {
   IconButton,
   AppBar,
@@ -14,6 +14,8 @@ import {
   Drawer,
   Box,
   Badge,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -21,6 +23,7 @@ import AccountCircle from "@mui/icons-material/AccountCircle";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./adminDrawer.module.css";
+import cn from "classnames";
 
 import { MenuItems } from "@/config/config";
 
@@ -28,6 +31,16 @@ export default function AdminDrawer() {
   const pathname = usePathname();
   const parts = pathname.split("/");
   const currentLink = parts[parts.length - 1];
+  const currentParentLink = parts[parts.length - 2];
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   return (
     <Box>
@@ -49,6 +62,7 @@ export default function AdminDrawer() {
               </Badge>
             </IconButton>
             <IconButton
+              onClick={handleMenu}
               size="large"
               edge="end"
               aria-label="account of current user"
@@ -56,6 +70,23 @@ export default function AdminDrawer() {
             >
               <AccountCircle />
             </IconButton>
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: "top",
+                horizontal: "right",
+              }}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem onClick={handleClose}>My account</MenuItem>
+            </Menu>
           </div>
         </Toolbar>
       </AppBar>
@@ -63,8 +94,9 @@ export default function AdminDrawer() {
         <Divider />
         <Toolbar />
         <List>
-          {MenuItems.map((menuItem) => (
+          {MenuItems.map((menuItem, index) => (
             <div key={menuItem.value}>
+              {index !== 0 && <Divider />}
               {menuItem.enabled && (
                 <>
                   <Link href={"/admin/" + menuItem.value}>
@@ -72,7 +104,10 @@ export default function AdminDrawer() {
                       key={menuItem.title}
                       disablePadding
                       className={
-                        currentLink === menuItem.value ? styles.activeLink : ""
+                        currentLink === menuItem.value ||
+                        currentParentLink === menuItem.value
+                          ? styles.activeLink
+                          : ""
                       }
                     >
                       <ListItemButton>
@@ -81,6 +116,7 @@ export default function AdminDrawer() {
                       </ListItemButton>
                     </ListItem>
                   </Link>
+
                   {menuItem &&
                     menuItem.subMenu &&
                     menuItem.subMenu?.map((submenu) => (
@@ -90,7 +126,11 @@ export default function AdminDrawer() {
                             <ListItem
                               key={submenu.title}
                               disablePadding
-                              className={styles.submenu}
+                              className={cn(styles.submenu, {
+                                [styles.activeSubLink]:
+                                  parts[parts.length - 1] ===
+                                  submenu.value.split("/")[2],
+                              })}
                             >
                               <ListItemButton>
                                 <ListItemText primary={submenu.title} />

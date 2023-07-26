@@ -1,7 +1,3 @@
-/* .submenu > div {
-  padding-left: 72px;
-} */
-
 .sidebar > div {
   min-width: 240px;
 }
@@ -12,4 +8,11 @@
 
 .activeLink {
   background-color: #d9ecff;
+}
+.activeSubLink {
+  background-color: #edf6ff;
+}
+
+.submenu > div {
+  padding: 3px 18px;
 }

@@ -20,6 +20,10 @@ export default function RootLayout({
   const cookieStore = cookies();
   const loggedInToken = cookieStore.get("logged_in");
 
+  // const handleLogout = () => {
+  //   cookieStore.delete("logged_in");
+  // };
+
   return (
     <>
       {!loggedInToken ? (
@@ -28,6 +32,7 @@ export default function RootLayout({
         <>
           <main className={styles.mainArea}>
             <AdminDrawer />
+
             {children}
           </main>
         </>

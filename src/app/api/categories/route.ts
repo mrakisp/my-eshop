@@ -42,20 +42,33 @@ export const POST = async (req: Request, res: Response) => {
   const categoryId = requestBody.categoryId;
   const showType = requestBody.showType ? parseInt(requestBody.showType) : 0;
 
-  // const categoryImage = requestBody.categoryImage;
+  const c_slug = categoryName
+    ? typesGreekUtils
+        .toGreeklish(categoryName?.replace(" ", "-"))
+        ?.toLowerCase()
+    : null;
 
   let message = { completed: false, error: "" };
   let dbQuery;
   let Qvalues;
 
   if (type === "update") {
+    //it will affect SEO if change name - not desired
+    // dbQuery = `UPDATE product_categories SET category_name = ?, category_description = ?, parent_category_id = ?, category_show_type = ?, category_slug = ? WHERE category_id = ?`;
+    // Qvalues = [
+    //   categoryName,
+    //   categoryDescr,
+    //   parentCategory,
+    //   showType,
+    //   c_slug,
+    //   categoryId,
+    // ];
     dbQuery = `UPDATE product_categories SET category_name = ?, category_description = ?, parent_category_id = ?, category_show_type = ? WHERE category_id = ?`;
     Qvalues = [
       categoryName,
       categoryDescr,
       parentCategory,
       showType,
-      // categoryImage,
       categoryId,
     ];
   } else if (type === "delete") {
@@ -76,9 +89,6 @@ export const POST = async (req: Request, res: Response) => {
     dbQuery = "DELETE FROM product_categories WHERE category_id = ?";
     Qvalues = [categoryId];
   } else {
-    const c_slug = typesGreekUtils
-      .toGreeklish(categoryName.replace(" ", "-"))
-      .toLowerCase();
     dbQuery = `INSERT INTO product_categories (category_name, category_description, parent_category_id, category_slug, category_show_type) VALUES (?, ?, ?, ?, ?)`;
     Qvalues = [categoryName, categoryDescr, parentCategory, c_slug, showType];
   }

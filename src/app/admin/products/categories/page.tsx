@@ -35,6 +35,7 @@ export default function Categories() {
   const [paginationTotalCount, setPaginationTotalCount] = useState(0);
 
   const fetchCategories = () => {
+    setIsLoading(true);
     getCategories(pagination).then((response: ICategories[]) => {
       setCategories(response);
       if (response && response[0] && "totalCategoriesCount" in response[0]) {
@@ -53,8 +54,6 @@ export default function Categories() {
     showType: string
     // categoryImage: string | null
   ) => {
-    setIsLoading(true);
-
     addCategory(
       categoryName,
       categoryDescr,
@@ -101,7 +100,7 @@ export default function Categories() {
     getCategory(categoryId).then((response: ICategories[]) => {
       if (response) setCategoryToBeUpdated(response[0]);
       setIsUpdateCategory(true);
-      fetchCategories();
+      // fetchCategories();
     });
   };
 
@@ -125,8 +124,9 @@ export default function Categories() {
 
   const handleSearch = (searchValue: string) => {
     setSearchCategory(searchValue);
-    setIsLoading(true);
+
     if (searchValue) {
+      setIsLoading(true);
       searchCategories(searchValue).then((response: ICategories[]) => {
         setCategories(response);
         setIsLoading(false);
@@ -151,7 +151,7 @@ export default function Categories() {
       </Paper>
 
       <Grid container spacing={4}>
-        <Grid item xs={12} md={6} lg={5}>
+        <Grid item xs={12} md={12} lg={5}>
           <Paper elevation={3} sx={{ padding: "15px 25px" }}>
             <AddCategory
               handleSave={handleSaveNewCategory}
@@ -159,7 +159,7 @@ export default function Categories() {
             />
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6} lg={7}>
+        <Grid item xs={12} md={12} lg={7}>
           <Paper elevation={3} sx={{ padding: "15px 25px" }}>
             <Search
               handleSearch={handleSearch}

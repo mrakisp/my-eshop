@@ -1,3 +1,5 @@
+const url = "/api/categories";
+
 export async function getCategories(pagination: {
   page: number;
   perPage: number;
@@ -8,7 +10,7 @@ export async function getCategories(pagination: {
       "Content-Type": "application/json",
     },
   };
-  let endpoint = "/api/categories";
+  let endpoint = url;
   //if (pagination.page && pagination.perPage) {
   endpoint += `?pageNumber=${pagination.page + 1}&pageSize=${
     pagination.perPage
@@ -27,7 +29,7 @@ export async function getCategory(id: number) {
     },
   };
 
-  const res = await fetch(`/api/categories/${id}`, postData);
+  const res = await fetch(url + `/${id}`, postData);
 
   return res.json();
 }
@@ -52,7 +54,7 @@ export async function addCategory(
     }),
   };
 
-  const res = await fetch(`/api/categories`, postData);
+  const res = await fetch(url, postData);
 
   return res.json();
 }
@@ -78,7 +80,7 @@ export async function updateCategory(
     }),
   };
 
-  const res = await fetch(`/api/categories?type=update`, postData);
+  const res = await fetch(url + "?type=update", postData);
 
   return res.json();
 }
@@ -94,7 +96,7 @@ export async function deleteCategory(categoryId: number) {
     }),
   };
 
-  const res = await fetch(`/api/categories?type=delete`, postData);
+  const res = await fetch(url + `?type=delete`, postData);
 
   return res.json();
 }
@@ -110,7 +112,7 @@ export async function deleteCategories(categoryIds: number[]) {
     }),
   };
 
-  const res = await fetch(`/api/categories/deleteMass`, postData);
+  const res = await fetch(url + "/deleteMass", postData);
 
   return res.json();
 }
@@ -123,10 +125,7 @@ export async function searchCategories(searchValue: string) {
     },
   };
 
-  const res = await fetch(
-    `/api/categories/search?search=${searchValue}`,
-    postData
-  );
+  const res = await fetch(url + `/search?search=${searchValue}`, postData);
 
   return res.json();
 }
