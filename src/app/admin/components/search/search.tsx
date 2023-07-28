@@ -27,17 +27,18 @@ export default function Search({ handleSearch, reset }: SearchProps) {
       handleSearch(searchText);
     }
     if (event.key === "Escape") {
-      handleClearSearch();
+      setSearchText("");
       handleSearch("");
     }
   };
 
   const handleClearSearch = () => {
     setSearchText("");
+    handleSearch("");
   };
 
   useEffect(() => {
-    if (reset) handleClearSearch();
+    if (reset) setSearchText(""); //handleClearSearch();
   }, [reset]);
 
   const InfoTitle = () => {

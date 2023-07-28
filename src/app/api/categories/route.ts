@@ -16,11 +16,40 @@ export const GET = async (req: Request) => {
 
   const product_categories = await query({
     query: `
-    SELECT *, (SELECT COUNT(*) FROM product_categories) AS totalCategoriesCount
-    FROM product_categories
-    LIMIT ?, ?;
-  `,
-    // query: "SELECT * FROM product_categories  LIMIT ?, ?",
+      SELECT *
+      FROM product_categories ORDER BY parent_category_id
+      LIMIT ?, ? ;
+    `,
+    // TODO pagination
+    // query: `
+    //   SELECT *, (SELECT COUNT(*) FROM product_categories) AS totalCategoriesCount
+    //   FROM product_categories ORDER BY parent_category_id
+    //   LIMIT ?, ? ;
+    // `,
+    // query: `SELECT *, (SELECT COUNT(*) FROM product_categories) AS totalCategoriesCount
+    // FROM product_categories
+    // ORDER BY
+    //   CASE
+    //     WHEN parent_category_id IS NOT NULL THEN parent_category_id
+    //     ELSE category_id
+    //   END,
+    //   parent_category_id IS NOT NULL LIMIT ?, ?;
+    // `,
+    // query: `WITH RECURSIVE category_tree AS (
+    //   SELECT category_id, parent_category_id, category_name, 0 AS level
+    //   FROM product_categories
+    //   WHERE parent_category_id IS NULL
+
+    //   UNION ALL
+
+    //   SELECT pc.category_id, pc.parent_category_id, pc.category_name, ct.level + 1 AS level
+    //   FROM product_categories pc
+    //   INNER JOIN category_tree ct ON pc.parent_category_id = ct.category_id
+    // )
+    // SELECT *, (SELECT COUNT(*) FROM product_categories) AS totalCategoriesCount
+    // FROM category_tree
+    // ORDER BY CASE WHEN parent_category_id IS NOT NULL THEN parent_category_id ELSE category_id END, parent_category_id IS NOT NULL LIMIT ?, ?;
+    // `,
     values: [offset, pageSize],
   });
 
@@ -53,7 +82,7 @@ export const POST = async (req: Request, res: Response) => {
   let Qvalues;
 
   if (type === "update") {
-    //it will affect SEO if change name - not desired
+    //it will affect SEO if change name - not desired //TODO
     // dbQuery = `UPDATE product_categories SET category_name = ?, category_description = ?, parent_category_id = ?, category_show_type = ?, category_slug = ? WHERE category_id = ?`;
     // Qvalues = [
     //   categoryName,

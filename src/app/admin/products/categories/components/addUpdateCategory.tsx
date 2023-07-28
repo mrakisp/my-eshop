@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+
 import {
   TextField,
   FormHelperText,
@@ -11,7 +12,9 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
+import Select from "@mui/material/Select";
+
+// import { removeAccents } from "@/utils/utils"; //TODO
 
 import { ICategories } from "@/types/categoriesTypes";
 
@@ -32,6 +35,7 @@ interface AddCategoryProps {
   isUpdateCategory?: boolean;
   data?: ICategories | undefined;
   categories: ICategories[];
+  // fetchParentCategories: (value: string) => void; //TODO
 }
 
 export default function AddCategory({
@@ -40,7 +44,8 @@ export default function AddCategory({
   isUpdateCategory,
   data,
   categories,
-}: AddCategoryProps) {
+}: // fetchParentCategories,
+AddCategoryProps) {
   const [parentCategory, setParentCategory] = useState(
     isUpdateCategory && data ? data.parent_category_id : null
   );
@@ -57,24 +62,45 @@ export default function AddCategory({
     isUpdateCategory && data ? data.category_show_type.toString() : "0"
   ); //0 for products | 1 for subcategories
 
-  const defaultAutoSelectOption = { category_id: null, category_name: "None" };
-  const autoCompleteOptions = categoryId
-    ? categories.filter((category) => category.category_id !== categoryId)
-    : [defaultAutoSelectOption, ...categories];
+  const defaultAutoSelectOption = { category_id: null, category_name: "-" };
 
-  const handleSelectCategory = (
+  const autoCompleteOptions = useMemo(
+    () =>
+      isUpdateCategory && data
+        ? [
+            defaultAutoSelectOption,
+            ...categories?.filter(
+              (category) =>
+                category?.category_id !== data.category_id &&
+                category?.parent_category_id !== data.category_id
+            ),
+          ]
+        : [defaultAutoSelectOption, ...categories],
+    [categories, data, isUpdateCategory]
+  );
+
+  const handleSelectParentCategory = (
     event: React.ChangeEvent<unknown>,
     value: string,
     reason: AutocompleteInputChangeReason
   ) => {
     if (reason === "input") {
       setParentCategory(parseInt(value));
+
+      //TODO if pagination applied need to fetch new categories
+      // const parentCategoryFound = categories?.find((element) =>
+      //   removeAccents(element.category_name)
+      //     .toLowerCase()
+      //     .includes(removeAccents(value).toLocaleLowerCase())
+      // );
+
+      // if (parentCategoryFound) {
+      //   setParentCategory(parseInt(value));
+      // } else {
+      //   fetchParentCategories(value);
+      // }
     }
   };
-
-  const selectedOption = categories.find(
-    (option) => option.category_id === parentCategory
-  );
 
   const reset = () => {
     setParentCategory(null);
@@ -100,7 +126,6 @@ export default function AddCategory({
         margin="normal"
         value={categoryName}
         helperText="Name of the category (Required)"
-        // defaultValue={isUpdateCategory && categoryName}
         onChange={(e) => setCategoryName(e.target.value)}
       />
 
@@ -111,23 +136,25 @@ export default function AddCategory({
         multiline
         value={categoryDescr || ""}
         minRows={4}
-        // defaultValue={isUpdateCategory && categoryDescr}
         onChange={(e) => setCategoryDescr(e.target.value)}
       />
 
       <Autocomplete
         sx={{ marginTop: "20px" }}
         getOptionLabel={(option) => option.category_name}
-        // options={categories}
         options={autoCompleteOptions}
         autoHighlight
-        value={selectedOption || defaultAutoSelectOption}
+        value={
+          autoCompleteOptions.find(
+            (option) => option.category_id === parentCategory
+          ) || defaultAutoSelectOption
+        }
         onChange={(_, newValue) => {
           if (newValue) {
             setParentCategory(newValue.category_id);
           }
         }}
-        onInputChange={handleSelectCategory}
+        onInputChange={handleSelectParentCategory}
         renderInput={(params) => (
           <TextField {...params} label="Parent Category" />
         )}
@@ -161,6 +188,7 @@ export default function AddCategory({
         will show them instead of products.
       </FormHelperText>
 
+      {/* //TODO */}
       {/* <ImageUpload onImageSelect={handleImageSelect} accept="image/*" /> */}
 
       <div>

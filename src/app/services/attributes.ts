@@ -95,3 +95,77 @@ export async function searchAttributes(searchValue: string) {
 
   return res.json();
 }
+
+export async function getAttributeValues(
+  pagination: {
+    page: number;
+    perPage: number;
+  },
+  atr_id: number
+) {
+  const postData = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+  let endpoint = url;
+
+  endpoint += `/values?atr_id=${atr_id}&pageNumber=${
+    pagination.page + 1
+  }&pageSize=${pagination.perPage}`;
+
+  const res = await fetch(endpoint, postData);
+
+  return res.json();
+}
+
+export async function addAttributeValue(name: string, atr_id: number) {
+  const postData = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: name,
+      atr_id: atr_id,
+    }),
+  };
+
+  const res = await fetch(url + "/values", postData);
+
+  return res.json();
+}
+
+export async function updateAttributeValue(name: string, id: number) {
+  const postData = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: name,
+      id: id,
+    }),
+  };
+
+  const res = await fetch(url + "/values?type=update", postData);
+
+  return res.json();
+}
+
+export async function deleteAttributeValue(id: number) {
+  const postData = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id: id,
+    }),
+  };
+
+  const res = await fetch(url + "/values?type=delete", postData);
+
+  return res.json();
+}

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import Image from "next/image";
 import {
   Checkbox,
@@ -22,7 +22,7 @@ import styles from "./categoriesTable.module.scss";
 
 import placeholder from "@/assets/placeholder.png";
 
-interface CategoryProps {
+interface CategoriesTableProps {
   data: ICategories[];
   isLoading: boolean;
   searchCategory?: string;
@@ -31,14 +31,14 @@ interface CategoryProps {
   handleDeleteMass: (categoryIds: number[]) => void;
 }
 
-export default function CategoriesTable({
+function CategoriesTable({
   data,
   isLoading,
   searchCategory,
   handleEdit,
   handleDelete,
   handleDeleteMass,
-}: CategoryProps) {
+}: CategoriesTableProps) {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [isTableHeadChecked, setIsTableHeadChecked] = useState(false);
   const [isConfirmedDialogOpen, setIsConfirmedDialogOpen] = useState(false);
@@ -72,7 +72,6 @@ export default function CategoriesTable({
   };
 
   const handleCloseDialog = () => {
-    console.log(data);
     setIsConfirmedDialogOpen(false);
   };
 
@@ -80,6 +79,17 @@ export default function CategoriesTable({
     parentId: number | null,
     isChild: boolean = false
   ): JSX.Element[] => {
+    //TODO
+    // const parentCategoryExist = data.some((category) => parentId);
+
+    // const childCategories = parentCategoryExist
+    //   ? data.filter((category) => category.parent_category_id === parentId)
+    //   : data;
+
+    // if (childCategories.length === 0) {
+    //   return [];
+    // }
+
     const childCategories = data.filter(
       (category) => category.parent_category_id === parentId
     );
@@ -147,7 +157,6 @@ export default function CategoriesTable({
                 aria-label="delete"
                 color="error"
                 disabled={selectedCategories.length > 1}
-                // onClick={() => handleDelete(category.category_id)}
                 onClick={() => {
                   if (
                     !selectedCategories?.find(
@@ -195,6 +204,97 @@ export default function CategoriesTable({
       </div>
       <Divider />
       {isLoading ? <Skeleton height={300} /> : renderCategories(null)}
+
+      {/* //TODO pagination */}
+
+      {/* {isLoading ? (
+        <Skeleton height={300} />
+      ) : (
+        data.map((category) => (
+          <div
+            key={category.category_id}
+            className={`${
+              category.parent_category_id
+                ? styles.childCategory
+                : styles.parentCategory
+            } ${
+              searchCategory &&
+              removeAccents(category.category_name.toLowerCase()).includes(
+                removeAccents(searchCategory.toLowerCase())
+              )
+                ? styles.highlighted
+                : ""
+            }`}
+          >
+            <div className={styles.categoryRow}>
+              <div className={styles.checkbox}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectedCategories.includes(
+                        category.category_id
+                      )}
+                      onChange={() =>
+                        handleCheckboxChange(category.category_id)
+                      }
+                    />
+                  }
+                  label=""
+                />
+              </div>
+              <div className={styles.image}>
+                <Image
+                  src={
+                    category.category_image_url
+                      ? "/" + category.category_image_url
+                      : placeholder
+                  }
+                  width={40}
+                  height={40}
+                  alt={category.category_name}
+                  quality={50}
+                />
+              </div>
+              <div className={styles.name}>{category.category_name}</div>
+              <div
+                className={styles.description}
+                title={category.category_description}
+              >
+                {category.category_description
+                  ? category.category_description
+                  : "-"}
+              </div>
+              <div className={styles.actions}>
+                <Stack direction="row" spacing={1}>
+                  <IconButton
+                    aria-label="edit"
+                    disabled={selectedCategories.length > 1}
+                    onClick={() => handleEdit(category.category_id)}
+                  >
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    aria-label="delete"
+                    color="error"
+                    disabled={selectedCategories.length > 1}
+                    onClick={() => {
+                      if (
+                        !selectedCategories?.find(
+                          (item) => item === category.category_id
+                        )
+                      )
+                        handleCheckboxChange(category.category_id);
+                      setIsConfirmedDialogOpen(true);
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Stack>
+              </div>
+            </div>
+          </div>
+        ))
+      )} */}
       <ModalDialog
         title={`Are you sure you want to delete "${selectedCategories?.map(
           (categoryId) =>
@@ -217,11 +317,6 @@ export default function CategoriesTable({
                 : handleDelete(selectedCategories[0]);
               setIsConfirmedDialogOpen(false);
             }}
-            // onClick={() =>
-            //   selectedCategories?.length > 1
-            //     ? handleDeleteMass(selectedCategories)
-            //     : handleDelete(selectedCategories[0])
-            // }
           >
             Yes
           </Button>
@@ -230,3 +325,5 @@ export default function CategoriesTable({
     </div>
   );
 }
+
+export default memo(CategoriesTable);

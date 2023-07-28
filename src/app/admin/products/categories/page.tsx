@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo, memo } from "react";
+// import { debounce } from "lodash";
 
 import { Grid, Paper, Typography } from "@mui/material";
 
@@ -8,8 +9,10 @@ import CategoriesTable from "./components/categoriesTable";
 import ModalDialog from "@/admin/components/dialog/ModalDialog";
 import Search from "@/admin/components/search/search";
 import ActionMessage from "@/admin/components/snackBar/actionMessage";
-import PaginationBar from "@/admin/components/pagination/pagination";
-// import useErrorMessage from "@/hooks/handleError";
+// import PaginationBar from "@/admin/components/pagination/pagination";
+
+// import { setLocalStorageUtil } from "@/utils/setGetLocalStorage";
+
 import { ICategories } from "@/types/categoriesTypes";
 import {
   getCategories,
@@ -21,39 +24,47 @@ import {
   deleteCategories,
 } from "@/services/categories";
 
-export default function Categories() {
-  // const [errorMessage, setErrorMessage] = useErrorMessage();
+function Categories() {
   const [isLoading, setIsLoading] = useState(true);
-  const [isCategoryAdded, setIsCategoryAdded] = useState(false);
-  const [isCategoryUpdated, setIsCategoryUpdated] = useState(false);
-  const [isCategoryDeleted, setIsCategoryDeleted] = useState(false);
   const [categories, setCategories] = useState<ICategories[]>([]);
-  const [searchCategory, setSearchCategory] = useState<string>();
-  const [isUpdateCategory, setIsUpdateCategory] = useState(false);
-  const [categoryToBeUpdated, setCategoryToBeUpdated] = useState<ICategories>();
-  const [pagination, setPagination] = useState({ page: 0, perPage: 30 });
-  const [paginationTotalCount, setPaginationTotalCount] = useState(0);
 
-  const fetchCategories = () => {
+  const [searchCategory, setSearchCategory] = useState<string>();
+  const [isUpdateCategoryState, setIsUpdateCategoryState] = useState(false);
+  const [categoryToBeUpdated, setCategoryToBeUpdated] = useState<ICategories>();
+  const [pagination, setPagination] = useState({ page: 0, perPage: 100 });
+  // const [categoriesOptions, setCategoriesOptions] = useState<ICategories[]>([]); //TODO
+  // const [paginationTotalCount, setPaginationTotalCount] = useState(0); //TODO
+  const [actionMessage, setActionMessage] = useState<{
+    open: boolean;
+    message: string;
+  }>({
+    open: false,
+    message: "",
+  });
+
+  const fetchCategories = useCallback(() => {
     setIsLoading(true);
     getCategories(pagination).then((response: ICategories[]) => {
       setCategories(response);
+      // setLocalStorageUtil("categories", JSON.stringify(response), false);
+      // setCategoriesOptions(response);
       if (response && response[0] && "totalCategoriesCount" in response[0]) {
-        const totalCount: any = response[0];
-        setPaginationTotalCount(parseInt(totalCount.totalCategoriesCount));
+        // const totalCount: any = response[0]; //TODO
+        // setPaginationTotalCount(parseInt(totalCount.totalCategoriesCount)); //TODO
       }
       if (searchCategory) setSearchCategory("");
       setIsLoading(false);
     });
-  };
+  }, [pagination, searchCategory]);
 
   const handleSaveNewCategory = async (
     parentCategory: number | null,
     categoryName: string,
     categoryDescr: string | null,
     showType: string
-    // categoryImage: string | null
+    // categoryImage: string | null //TODO
   ) => {
+    setIsLoading(true);
     addCategory(
       categoryName,
       categoryDescr,
@@ -62,22 +73,20 @@ export default function Categories() {
       // categoryImage
     ).then((response) => {
       if (response && response.completed) {
-        setIsCategoryAdded(true);
+        setActionMessage({ open: true, message: "Category Added!" });
         fetchCategories();
-      } else {
-        //handleError
-        //setErrorMessage(response.error.message);
       }
     });
   };
 
-  const handleUpdateCategory = (
+  const handleUpdateCategory = async (
     parentCategory: number | null,
     categoryName: string,
     categoryDescr: string | null,
     categoryId: number,
     showType: string
   ) => {
+    setIsLoading(true);
     updateCategory(
       categoryName,
       categoryDescr,
@@ -86,63 +95,75 @@ export default function Categories() {
       showType
     ).then((response) => {
       if (response && response.completed) {
-        setIsCategoryUpdated(true);
-        setIsUpdateCategory(false);
+        setActionMessage({ open: true, message: "Category Updated!" });
+        setIsUpdateCategoryState(false);
         fetchCategories();
-      } else {
-        //handleError
-        //setErrorMessage(response.error.message);
       }
     });
   };
 
-  const handleEdit = (categoryId: number) => {
+  const handleEdit = async (categoryId: number) => {
     getCategory(categoryId).then((response: ICategories[]) => {
       if (response) setCategoryToBeUpdated(response[0]);
-      setIsUpdateCategory(true);
-      // fetchCategories();
+      setIsUpdateCategoryState(true);
     });
   };
 
-  const handleDelete = (categoryId: number) => {
+  const handleDelete = async (categoryId: number) => {
+    setIsLoading(true);
     deleteCategory(categoryId).then((response: ICategories[]) => {
-      setIsCategoryDeleted(true);
+      setActionMessage({ open: true, message: "Category Deleted!" });
+
       fetchCategories();
     });
   };
 
-  const handleDeleteMass = (categoryIds: number[]) => {
+  const handleDeleteMass = async (categoryIds: number[]) => {
+    setIsLoading(true);
     deleteCategories(categoryIds).then((response: ICategories[]) => {
-      setIsCategoryDeleted(true);
+      setActionMessage({ open: true, message: "Categories Deleted!" });
       fetchCategories();
     });
   };
 
   const handleCloseDialog = () => {
-    setIsUpdateCategory(false);
+    setIsUpdateCategoryState(false);
   };
 
-  const handleSearch = (searchValue: string) => {
-    setSearchCategory(searchValue);
+  const handleSearch = useCallback(
+    (searchValue: string) => {
+      setSearchCategory(searchValue);
 
-    if (searchValue) {
-      setIsLoading(true);
-      searchCategories(searchValue).then((response: ICategories[]) => {
-        setCategories(response);
-        setIsLoading(false);
-      });
-    } else {
-      fetchCategories();
-    }
-  };
+      if (searchValue) {
+        setIsLoading(true);
+        searchCategories(searchValue).then((response: ICategories[]) => {
+          setCategories(response);
+          setIsLoading(false);
+        });
+      } else {
+        fetchCategories();
+      }
+    },
+    [fetchCategories]
+  );
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  //TODO if pagination enabled need to fetch new categories
+  // const fetchParentCategories = useMemo(
+  //   () =>
+  //     debounce((value: string) => {
+  //       searchCategories(value).then((response: ICategories[]) => {
+  //         if (response && response[0])
+  //           setCategoriesOptions([...categoriesOptions, response[0]]);
+  //       });
+  //     }, 600),
+  //   [categoriesOptions]
+  // );
 
   useEffect(() => {
     fetchCategories();
   }, [pagination]);
+
+  const memoizedCategories = useMemo(() => categories, [categories]);
 
   return (
     <>
@@ -156,61 +177,55 @@ export default function Categories() {
             <AddCategory
               handleSave={handleSaveNewCategory}
               categories={categories}
+              // categories={categoriesOptions} //TODO
+              // fetchParentCategories={fetchParentCategories} //TODO
             />
           </Paper>
         </Grid>
         <Grid item xs={12} md={12} lg={7}>
           <Paper elevation={3} sx={{ padding: "15px 25px" }}>
-            <Search
-              handleSearch={handleSearch}
-              reset={isCategoryAdded || isCategoryUpdated || isCategoryDeleted}
-            />
+            <Search handleSearch={handleSearch} reset={actionMessage.open} />
             <CategoriesTable
-              data={categories}
+              data={memoizedCategories}
+              // data={categories}
               isLoading={isLoading}
               searchCategory={searchCategory}
               handleEdit={handleEdit}
               handleDelete={handleDelete}
               handleDeleteMass={handleDeleteMass}
             />
-            {!searchCategory && (
+            {/* {!searchCategory && ( //TODO
               <PaginationBar
                 pagination={pagination}
                 setPagination={setPagination}
                 paginationTotalCount={paginationTotalCount}
               />
-            )}
+            )} */}
           </Paper>
         </Grid>
       </Grid>
       <ModalDialog
         title="Update Category"
-        open={isUpdateCategory}
+        open={isUpdateCategoryState}
         handleCloseDialog={handleCloseDialog}
       >
         <AddCategory
           handleUpdate={handleUpdateCategory}
-          isUpdateCategory={isUpdateCategory}
+          isUpdateCategory={isUpdateCategoryState}
           data={categoryToBeUpdated}
           categories={categories}
+          // categories={categoriesOptions} //TODO
+          // fetchParentCategories={fetchParentCategories} //TODO
         />
       </ModalDialog>
 
       <ActionMessage
-        open={isCategoryAdded}
-        message={"Category Added!"}
-        setOpen={setIsCategoryAdded}
-      />
-      <ActionMessage
-        open={isCategoryUpdated}
-        message={"Category Updated!"}
-        setOpen={setIsCategoryUpdated}
-      />
-      <ActionMessage
-        open={isCategoryDeleted}
-        message={"Category Deleted!"}
-        setOpen={setIsCategoryDeleted}
+        open={actionMessage.open}
+        message={actionMessage.message}
+        setOpen={(open: any) => setActionMessage({ ...actionMessage, open })}
       />
     </>
   );
 }
+
+export default memo(Categories);

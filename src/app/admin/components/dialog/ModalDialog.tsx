@@ -15,14 +15,26 @@ export interface DialogTitleProps {
   children?: React.ReactNode;
   title: string;
   open: boolean;
+  fullscreen?: boolean;
   handleCloseDialog: () => void;
 }
 
 export default function ModalDialog(props: DialogTitleProps) {
-  const { children, title, open, handleCloseDialog } = props;
+  const {
+    children,
+    title,
+    open,
+    handleCloseDialog,
+    fullscreen = false,
+  } = props;
 
   return (
-    <Dialog onClose={handleCloseDialog} open={open} keepMounted={false}>
+    <Dialog
+      onClose={handleCloseDialog}
+      open={open}
+      keepMounted={false}
+      fullScreen={fullscreen}
+    >
       <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
         {title}
         <IconButton sx={{ marginLeft: "auto" }} onClick={handleCloseDialog}>
