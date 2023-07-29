@@ -40,6 +40,7 @@ export default function AddUpdateAttributes({
 
       <TextField
         fullWidth
+        autoFocus
         label="Name*"
         variant="outlined"
         margin="normal"

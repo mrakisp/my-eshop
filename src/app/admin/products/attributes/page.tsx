@@ -12,6 +12,7 @@ import {
   Stack,
   Skeleton,
   Button,
+  Tooltip,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -128,11 +129,6 @@ function Attributes() {
       attrId: attrId,
       attrName: attrName,
     });
-    // addAttribute(attrName).then((response) => {
-    //   if (response && response.completed) {
-    //     fetchAttributes();
-    //   }
-    // });
   };
 
   const handleSearch = useCallback(
@@ -201,17 +197,19 @@ function Attributes() {
                           spacing={1}
                           sx={{ marginLeft: "auto" }}
                         >
-                          <IconButton
-                            aria-label="add"
-                            onClick={() =>
-                              handleOpenAttriubteValues(
-                                attribute.id,
-                                attribute.name
-                              )
-                            }
-                          >
-                            <LibraryAddIcon />
-                          </IconButton>
+                          <Tooltip title="Add values" arrow placement="top">
+                            <IconButton
+                              aria-label="add"
+                              onClick={() =>
+                                handleOpenAttriubteValues(
+                                  attribute.id,
+                                  attribute.name
+                                )
+                              }
+                            >
+                              <LibraryAddIcon />
+                            </IconButton>
+                          </Tooltip>
                           <IconButton
                             aria-label="edit"
                             onClick={() => handleEditAttriubte(attribute.id)}

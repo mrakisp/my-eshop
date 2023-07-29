@@ -14,8 +14,11 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import ClearIcon from "@mui/icons-material/Clear";
+import SaveIcon from "@mui/icons-material/Save";
 
 import DataTable from "@/admin/components/table/table";
+import ModalDialog from "@/admin/components/dialog/ModalDialog";
 
 import { IAttributeValues } from "@/types/attributesTypes";
 
@@ -41,11 +44,20 @@ export default function AddUpdateAttributeValues({
   atr_id,
 }: AddUpdateAttributeValues) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isEditState, setIsEditState] = useState(false);
+  const [isEditState, setIsEditState] = useState<{
+    isEditMode: boolean;
+    editId: number | null;
+  }>({ isEditMode: false, editId: null });
   const [attributeValues, setAttributeValues] = useState<IAttributeValues[]>(
     []
   );
   const [attributeValueName, setAttributeValueName] = useState("");
+  const [attributeValueNameToUpdate, setAttributeValueNameToUpdate] =
+    useState("");
+  const [isConfirmedDialogOpen, setIsConfirmedDialogOpen] = useState<{
+    open: boolean;
+    id: number | null;
+  }>({ open: false, id: null });
   const [pagination, setPagination] = useState({ page: 0, perPage: 30 });
   const [paginationTotalCount, setPaginationTotalCount] = useState(0);
 
@@ -68,9 +80,9 @@ export default function AddUpdateAttributeValues({
         setIsLoading(false);
       }
     );
-  }, [pagination]);
+  }, [atr_id, pagination]);
 
-  const handleAddAttributeValue = (name: string) => {
+  const handleAddAttributeValue = async (name: string) => {
     if (!name || !atr_id) return;
     setIsLoading(true);
     addAttributeValue(name, atr_id).then((response) => {
@@ -81,14 +93,60 @@ export default function AddUpdateAttributeValues({
     });
   };
 
+  const handleUpdateAttributeValue = async (name: string, id: number) => {
+    if (!name || !id) return;
+    setIsLoading(true);
+    try {
+      const response = await updateAttributeValue(name, id);
+      if (response && response.completed) {
+        setIsEditState({ isEditMode: false, editId: null });
+        fetchAttributes();
+      }
+    } catch (error) {
+      // Handle error if needed
+    }
+    // updateAttributeValue(name, id).then((response) => {
+    //   if (response && response.completed) {
+    //     // setActionMessage({ open: true, message: "Attribute Added!" });
+    //     setIsEditState({
+    //       isEditMode: false,
+    //       editId: null,
+    //     });
+    //     fetchAttributes();
+    //   }
+    // });
+  };
+
+  const handleDeleteAttriubteValue = async (id: number | null) => {
+    setIsLoading(true);
+    if (!id) return;
+    try {
+      await deleteAttributeValue(id);
+      handleCloseDialog();
+      fetchAttributes();
+    } catch (error) {
+      // Handle error if needed
+    }
+    // deleteAttributeValue(id).then((response) => {
+    //   // setActionMessage({ open: true, message: "Attribute Deleted!" });
+    //   handleCloseDialog();
+    //   fetchAttributes();
+    // });
+  };
+
+  const handleCloseDialog = () => {
+    setIsConfirmedDialogOpen({ open: false, id: null });
+  };
+
   useEffect(() => {
     fetchAttributes();
-  }, [pagination]);
+  }, [atr_id, pagination]);
 
   const memoizedAttributeValues = useMemo(
     () => attributeValues,
     [attributeValues]
   );
+
   const memoizedColumns = useMemo(() => tableColumns, []);
 
   return (
@@ -112,7 +170,7 @@ export default function AddUpdateAttributeValues({
               <Button
                 variant="contained"
                 sx={{ marginTop: "35px" }}
-                // disabled={attributeValueName ? false : true}
+                disabled={attributeValueName ? false : true}
                 onClick={() => handleAddAttributeValue(attributeValueName)}
               >
                 Add {name}
@@ -133,31 +191,85 @@ export default function AddUpdateAttributeValues({
                       "&:last-child td, &:last-child th": { border: 0 },
                     }}
                   >
-                    <TableCell>{value.name}</TableCell>
+                    <TableCell>
+                      {isEditState.isEditMode &&
+                      isEditState.editId === value.id ? (
+                        <TextField
+                          sx={{ margin: 0 }}
+                          variant="standard"
+                          size="small"
+                          margin="normal"
+                          autoFocus
+                          defaultValue={value.name}
+                          onChange={(e) =>
+                            setAttributeValueNameToUpdate(e.target.value)
+                          }
+                        />
+                      ) : (
+                        value.name
+                      )}
+                    </TableCell>
                     <TableCell align="right" sx={{ display: "flex" }}>
                       <Stack
                         direction="row"
                         spacing={1}
                         sx={{ marginLeft: "auto" }}
                       >
-                        <IconButton
-                          aria-label="edit"
-                          // onClick={() => setIsEditState(true)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          aria-label="delete"
-                          color="error"
-                          // onClick={() =>
-                          //   setIsConfirmedDialogOpen({
-                          //     open: true,
-                          //     id: attribute.id,
-                          //   })
-                          // }
-                        >
-                          <DeleteIcon />
-                        </IconButton>
+                        {isEditState.isEditMode &&
+                        isEditState.editId === value.id ? (
+                          <>
+                            <IconButton
+                              aria-label="save"
+                              color="primary"
+                              onClick={() =>
+                                handleUpdateAttributeValue(
+                                  attributeValueNameToUpdate,
+                                  value.id
+                                )
+                              }
+                            >
+                              <SaveIcon />
+                            </IconButton>
+                            <IconButton
+                              aria-label="cancel"
+                              color="secondary"
+                              onClick={() =>
+                                setIsEditState({
+                                  isEditMode: false,
+                                  editId: null,
+                                })
+                              }
+                            >
+                              <ClearIcon />
+                            </IconButton>{" "}
+                          </>
+                        ) : (
+                          <>
+                            <IconButton
+                              aria-label="edit"
+                              onClick={() =>
+                                setIsEditState({
+                                  isEditMode: true,
+                                  editId: value.id,
+                                })
+                              }
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              aria-label="delete"
+                              color="error"
+                              onClick={() =>
+                                setIsConfirmedDialogOpen({
+                                  open: true,
+                                  id: value.id,
+                                })
+                              }
+                            >
+                              <DeleteIcon />
+                            </IconButton>{" "}
+                          </>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -167,6 +279,30 @@ export default function AddUpdateAttributeValues({
           </Paper>
         </Grid>
       </Grid>
+      <ModalDialog
+        title={`Are you sure you want to delete "${
+          attributeValues?.find((item) => item.id === isConfirmedDialogOpen.id)
+            ?.name || null
+        }"`}
+        open={isConfirmedDialogOpen.open}
+        handleCloseDialog={handleCloseDialog}
+      >
+        <Stack direction="row" spacing={2}>
+          <Button variant="contained" onClick={handleCloseDialog}>
+            No
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              handleDeleteAttriubteValue(isConfirmedDialogOpen.id);
+              handleCloseDialog();
+            }}
+          >
+            Yes
+          </Button>
+        </Stack>
+      </ModalDialog>
     </>
   );
 }
