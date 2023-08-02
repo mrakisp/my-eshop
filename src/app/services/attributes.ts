@@ -169,3 +169,19 @@ export async function deleteAttributeValue(id: number) {
 
   return res.json();
 }
+
+export async function getAttributeValuesGrouped() {
+  const postData = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+  let endpoint = url;
+
+  endpoint += `/grouped`;
+
+  const res = await fetch(endpoint, postData);
+
+  return res.json();
+}

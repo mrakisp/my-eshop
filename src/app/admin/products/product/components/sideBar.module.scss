@@ -1,0 +1,49 @@
+.categoryRow {
+  display: flex;
+  align-items: center;
+  & > div:not(.checkbox, .image, .description) {
+    width: 150px;
+    margin: 0 15px;
+  }
+}
+.checkbox label {
+  margin-right: 0;
+}
+
+.hidden {
+  display: none;
+}
+
+.childCategory {
+  & .name {
+    margin-left: 5px;
+    &:before {
+      content: "—";
+      padding-right: 10px;
+    }
+  }
+
+  & .childCategory {
+    & .name {
+      &:before {
+        content: "——";
+        padding-right: 10px;
+      }
+    }
+    & .childCategory {
+      & .name {
+        &:before {
+          content: "———";
+          padding-right: 10px;
+        }
+      }
+    }
+  }
+}
+
+.boxContainer .categoriesList {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+}

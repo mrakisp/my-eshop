@@ -8,10 +8,17 @@ import InfoIcon from "@mui/icons-material/Info";
 
 interface SearchProps {
   handleSearch: (searchValue: string) => void;
-  reset: boolean;
+  reset?: boolean;
+  width?: number;
+  isStandAlone?: boolean;
 }
 
-export default function Search({ handleSearch, reset }: SearchProps) {
+export default function Search({
+  handleSearch,
+  reset,
+  width = 400,
+  isStandAlone = true,
+}: SearchProps) {
   const [searchText, setSearchText] = useState("");
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,25 +58,32 @@ export default function Search({ handleSearch, reset }: SearchProps) {
     );
   };
 
-  return (
-    <Paper
-      component="form"
-      sx={{
+  const style = isStandAlone
+    ? {
         p: "2px 5px",
         display: "flex",
         alignItems: "center",
-        width: 400,
+        maxWidth: width,
         marginLeft: "auto",
         marginBottom: "10px",
-      }}
-    >
+      }
+    : {
+        maxWidth: width,
+        display: "flex",
+        alignItems: "center",
+        marginLeft: "auto",
+        background: "inherit",
+      };
+
+  return (
+    <Paper component="form" elevation={isStandAlone ? 1 : 0} sx={style}>
       <Tooltip title={<InfoTitle />}>
         <IconButton>
           <InfoIcon />
         </IconButton>
       </Tooltip>
       <InputBase
-        sx={{ ml: 1, flex: 1 }}
+        sx={{ ml: 1, flex: 1, borderBottom: "1px solid" }}
         placeholder="Search"
         value={searchText}
         onChange={handleInputChange}

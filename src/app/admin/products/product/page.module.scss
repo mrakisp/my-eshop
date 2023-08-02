@@ -1,0 +1,9 @@
+.actionsContainer {
+  display: flex;
+  padding: 10px 0 10px 268px;
+
+  & .actionsRight {
+    margin-left: auto;
+    margin-right: 30px;
+  }
+}

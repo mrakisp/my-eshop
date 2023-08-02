@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 import {
@@ -9,6 +9,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import "react-quill/dist/quill.snow.css";
+import styles from "./wysiwgEditor.module.scss";
 
 interface WysiwygTextFieldProps {
   label: string;
@@ -30,11 +31,20 @@ const WysiwygEditor: React.FC<WysiwygTextFieldProps> = ({
     onChange(content); // Pass the updated content to the parent component
   };
 
+  useEffect(() => {
+    if (!value) {
+      setEditorState("");
+    } else {
+      setEditorState(value);
+    }
+  }, [value]);
+
   return (
     <>
-      <InputLabel>{label}</InputLabel>
+      <InputLabel sx={{ margin: "10px 0" }}>{label}</InputLabel>
       <FormControl fullWidth error={error}>
         <ReactQuill
+          className={styles.editor}
           value={editorState}
           onChange={handleEditorChange}
           theme="snow"
