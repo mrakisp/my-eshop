@@ -31,7 +31,7 @@ export default function DataTable({
         <TableHead>
           <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
             {columns.map((column: any) => (
-              <TableCell key={column.label} align={column.align} variant="body">
+              <TableCell key={column.label} align={column.align} variant="head">
                 {column.label} {column.action}
               </TableCell>
             ))}
