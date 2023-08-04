@@ -13,11 +13,13 @@ interface PaginationBarProps {
     }>
   >;
   paginationTotalCount: number;
+  perPageOptions?: number[];
 }
 export default function PaginationBar({
   pagination,
   setPagination,
   paginationTotalCount,
+  perPageOptions = [30, 60, 90],
 }: PaginationBarProps) {
   const [page, setPage] = useState(pagination.page);
   const [rowsPerPage, setRowsPerPage] = useState(pagination.perPage);
@@ -40,7 +42,7 @@ export default function PaginationBar({
 
   return (
     <TablePagination
-      rowsPerPageOptions={[30, 60, 90]}
+      rowsPerPageOptions={perPageOptions}
       component="div"
       count={paginationTotalCount}
       page={page}

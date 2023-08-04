@@ -19,6 +19,7 @@ import SaveIcon from "@mui/icons-material/Save";
 
 import DataTable from "@/admin/components/table/table";
 import ModalDialog from "@/admin/components/dialog/ModalDialog";
+import PaginationBar from "@/admin/components/pagination/pagination";
 
 import { IAttributeValues } from "@/types/attributesTypes";
 
@@ -58,7 +59,7 @@ export default function AddUpdateAttributeValues({
     open: boolean;
     id: number | null;
   }>({ open: false, id: null });
-  const [pagination, setPagination] = useState({ page: 0, perPage: 30 });
+  const [pagination, setPagination] = useState({ page: 0, perPage: 10 });
   const [paginationTotalCount, setPaginationTotalCount] = useState(0);
 
   const fetchAttributes = useCallback(() => {
@@ -88,6 +89,7 @@ export default function AddUpdateAttributeValues({
     addAttributeValue(name, atr_id).then((response) => {
       if (response && response.completed) {
         // setActionMessage({ open: true, message: "Attribute Added!" });
+        setAttributeValueName("");
         fetchAttributes();
       }
     });
@@ -183,98 +185,106 @@ export default function AddUpdateAttributeValues({
             {isLoading ? (
               <Skeleton height={300} />
             ) : (
-              <DataTable columns={memoizedColumns}>
-                {memoizedAttributeValues?.map((value) => (
-                  <TableRow
-                    key={value.id}
-                    sx={{
-                      "&:last-child td, &:last-child th": { border: 0 },
-                    }}
-                  >
-                    <TableCell>
-                      {isEditState.isEditMode &&
-                      isEditState.editId === value.id ? (
-                        <TextField
-                          sx={{ margin: 0 }}
-                          variant="standard"
-                          size="small"
-                          margin="normal"
-                          autoFocus
-                          defaultValue={value.name}
-                          onChange={(e) =>
-                            setAttributeValueNameToUpdate(e.target.value)
-                          }
-                        />
-                      ) : (
-                        value.name
-                      )}
-                    </TableCell>
-                    <TableCell align="right" sx={{ display: "flex" }}>
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        sx={{ marginLeft: "auto" }}
-                      >
+              <>
+                <DataTable columns={memoizedColumns}>
+                  {memoizedAttributeValues?.map((value) => (
+                    <TableRow
+                      key={value.id}
+                      sx={{
+                        "&:last-child td, &:last-child th": { border: 0 },
+                      }}
+                    >
+                      <TableCell>
                         {isEditState.isEditMode &&
                         isEditState.editId === value.id ? (
-                          <>
-                            <IconButton
-                              aria-label="save"
-                              color="primary"
-                              onClick={() =>
-                                handleUpdateAttributeValue(
-                                  attributeValueNameToUpdate,
-                                  value.id
-                                )
-                              }
-                            >
-                              <SaveIcon />
-                            </IconButton>
-                            <IconButton
-                              aria-label="cancel"
-                              color="secondary"
-                              onClick={() =>
-                                setIsEditState({
-                                  isEditMode: false,
-                                  editId: null,
-                                })
-                              }
-                            >
-                              <ClearIcon />
-                            </IconButton>{" "}
-                          </>
+                          <TextField
+                            sx={{ margin: 0 }}
+                            variant="standard"
+                            size="small"
+                            margin="normal"
+                            autoFocus
+                            defaultValue={value.name}
+                            onChange={(e) =>
+                              setAttributeValueNameToUpdate(e.target.value)
+                            }
+                          />
                         ) : (
-                          <>
-                            <IconButton
-                              aria-label="edit"
-                              onClick={() =>
-                                setIsEditState({
-                                  isEditMode: true,
-                                  editId: value.id,
-                                })
-                              }
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              aria-label="delete"
-                              color="error"
-                              onClick={() =>
-                                setIsConfirmedDialogOpen({
-                                  open: true,
-                                  id: value.id,
-                                })
-                              }
-                            >
-                              <DeleteIcon />
-                            </IconButton>{" "}
-                          </>
+                          value.name
                         )}
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </DataTable>
+                      </TableCell>
+                      <TableCell align="right" sx={{ display: "flex" }}>
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ marginLeft: "auto" }}
+                        >
+                          {isEditState.isEditMode &&
+                          isEditState.editId === value.id ? (
+                            <>
+                              <IconButton
+                                aria-label="save"
+                                color="primary"
+                                onClick={() =>
+                                  handleUpdateAttributeValue(
+                                    attributeValueNameToUpdate,
+                                    value.id
+                                  )
+                                }
+                              >
+                                <SaveIcon />
+                              </IconButton>
+                              <IconButton
+                                aria-label="cancel"
+                                color="secondary"
+                                onClick={() =>
+                                  setIsEditState({
+                                    isEditMode: false,
+                                    editId: null,
+                                  })
+                                }
+                              >
+                                <ClearIcon />
+                              </IconButton>{" "}
+                            </>
+                          ) : (
+                            <>
+                              <IconButton
+                                aria-label="edit"
+                                onClick={() =>
+                                  setIsEditState({
+                                    isEditMode: true,
+                                    editId: value.id,
+                                  })
+                                }
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                aria-label="delete"
+                                color="error"
+                                onClick={() =>
+                                  setIsConfirmedDialogOpen({
+                                    open: true,
+                                    id: value.id,
+                                  })
+                                }
+                              >
+                                <DeleteIcon />
+                              </IconButton>{" "}
+                            </>
+                          )}
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </DataTable>
+                <PaginationBar
+                  pagination={pagination}
+                  setPagination={setPagination}
+                  paginationTotalCount={paginationTotalCount}
+                  perPageOptions={[10, 20, 30]}
+                />
+              </>
             )}
           </Paper>
         </Grid>

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -11,14 +11,19 @@ interface ProductTypeProps {
   setIsSimpleProduct: Dispatch<SetStateAction<boolean>>;
   productModel: IProduct;
   setProductModel: Dispatch<SetStateAction<IProduct>>;
+  isSimpleProduct: boolean;
 }
 export default function ProductType({
   setIsSimpleProduct,
   productModel,
   setProductModel,
+  isSimpleProduct,
 }: ProductTypeProps) {
   const handleChange = (event: any) => {
-    setProductModel({ ...productModel, product_type: event.target.value });
+    setProductModel({
+      ...productModel,
+      product_type: event.target.value,
+    });
     setIsSimpleProduct(event.target.value === "simple" ? true : false);
   };
 
@@ -26,7 +31,7 @@ export default function ProductType({
     <FormControl sx={{ margin: "20px 0" }}>
       <FormLabel>Type</FormLabel>
       <RadioGroup
-        value={productModel.product_type ? productModel.product_type : "simple"}
+        value={isSimpleProduct ? "simple" : "variable"}
         onChange={handleChange}
         row
       >

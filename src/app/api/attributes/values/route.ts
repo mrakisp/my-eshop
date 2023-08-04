@@ -17,11 +17,11 @@ export const GET = async (req: Request) => {
 
   const product_attributeValues = await query({
     query: `
-    SELECT *, (SELECT COUNT(*) FROM attribute_values) AS totalAttributeValuesCount
+    SELECT *, (SELECT COUNT(*) FROM attribute_values  WHERE atr_id = ?) AS totalAttributeValuesCount
     FROM attribute_values WHERE atr_id = ?
     LIMIT ?, ?;
   `,
-    values: [atr_id, offset, pageSize],
+    values: [atr_id, atr_id, offset, pageSize],
   });
 
   return NextResponse.json(product_attributeValues);

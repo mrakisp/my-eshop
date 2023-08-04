@@ -1,4 +1,4 @@
-import { IProduct } from "@/types/productTypes";
+import { IProduct, IProductVariations } from "@/types/productTypes";
 
 export const ProductModel: IProduct = {
   name: "",
@@ -21,4 +21,21 @@ export const ProductModel: IProduct = {
   created_at: new Date(),
   updated_at: new Date(),
   category_ids: "",
+  attributes_ids: "",
+  grouped_id: "",
 };
+
+export const ProductVariationsModel: IProductVariations[] = [
+  //   {
+  //   id: null,
+  //   prod_id: null,
+  //   atr_id: null,
+  //   sku: "",
+  //   atr_values_id: null,
+  //   price: null,
+  //   sale_price: null,
+  //   stock: null,
+  //   created_at: new Date(),
+  //   updated_at: new Date(),
+  // }
+];

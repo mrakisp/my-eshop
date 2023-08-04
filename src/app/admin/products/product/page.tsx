@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+// import { useRouter } from "next/router";
 import {
   Button,
   Grid,
@@ -10,7 +11,10 @@ import {
 } from "@mui/material";
 
 import BottomNav from "@/admin/components/bottomNav/bottomNav";
-import { ProductModel } from "@/admin/products/product/model";
+import {
+  ProductModel,
+  ProductVariationsModel,
+} from "@/admin/products/product/model";
 import ProductBasicFields from "./components/basicFields";
 import ProductType from "./components/productType";
 import ProductData from "./components/productData";
@@ -19,65 +23,83 @@ import SideBar from "./components/sideBar";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import SaveIcon from "@mui/icons-material/Save";
 
-import { IProduct } from "@/types/productTypes";
+import { IProduct, IProductVariations } from "@/types/productTypes";
 
 import { addProduct, getProduct } from "@/services/product";
+
+import { addVariations, getVariations } from "@/services/variations";
 
 import styles from "./page.module.scss";
 
 export default function Product() {
   const productIdParams = useSearchParams();
+  const router = useRouter();
   const productId = productIdParams.get("productId");
+  const isDuplicate = productIdParams.get("duplicate");
   const [isClient, setIsClient] = useState(false);
+  const [hasValidFields, setHasValidFields] = useState(false);
   const [productModel, setProductModel] = useState<IProduct>(ProductModel);
+  const [variationsModel, setVariationsModel] = useState<IProductVariations[]>(
+    []
+  );
 
   const [isSimpleProduct, setIsSimpleProduct] = useState(
     ProductModel.product_type === "simple"
   );
 
-  // const createProduct = () => {
-  //   // console.log(productModel);
-  //   // setProductModel(ProductModel);
-  //   // setProductModel({ ...productModel, category_ids: "101,1", name: "akis" });
-  //   addProduct(productModel).then((response: IProduct) => {
-  //     setProductModel(ProductModel);
-  //   });
-  // };
-
   const createProduct = useCallback(() => {
+    // console.log(productModel);
+    // console.log(variationsModel);
+    if (!hasValidFields) return;
     addProduct(productModel).then((response: IProduct) => {
-      setProductModel(ProductModel);
+      if (!isSimpleProduct && variationsModel?.length > 0) {
+        addVariations(response.id, variationsModel).then(
+          (response: IProduct) => {
+            setProductModel(ProductModel);
+            setVariationsModel([]);
+            setIsSimpleProduct(true);
+          }
+        );
+      } else {
+        setProductModel(ProductModel);
+        setIsSimpleProduct(true);
+      }
     });
+  }, [productModel, variationsModel]);
+
+  const createDuplicateProduct = useCallback(() => {
+    if (!hasValidFields) return;
+    addProduct(productModel).then((response: IProduct) => {
+      if (!isSimpleProduct && variationsModel?.length > 0) {
+        addVariations(response.id, variationsModel).then(
+          (response: IProduct) => {}
+        );
+      }
+    });
+  }, [productModel, variationsModel]);
+
+  const deleteProduct = useCallback(() => {
+    // addProduct(productModel).then((response: IProduct) => {
+    //   setProductModel(ProductModel);
+    // });
   }, []);
 
-  const createDuplicateProduct = () => {
-    addProduct(productModel).then((response: IProduct) => {
-      // setProductModel(ProductModel);
-    });
-  };
-
-  const deleteProduct = () => {
+  const updateProduct = useCallback(() => {
+    if (!hasValidFields) return;
     // addProduct(productModel).then((response: IProduct) => {
     //   setProductModel(ProductModel);
     // });
-  };
+  }, []);
 
-  const updateProduct = () => {
-    // addProduct(productModel).then((response: IProduct) => {
-    //   setProductModel(ProductModel);
+  const duplicateProduct = useCallback(() => {
+    // setProductModel({
+    //   ...productModel,
+    //   id: null,
     // });
-  };
-
-  const validateReqFields = () => {
-    const { name, price, status, product_type } = productModel;
-
-    if (name && price && status && product_type) {
-      return true;
-    } else {
-      return false;
-    }
-  };
+    router.push("product?duplicate=true");
+  }, []);
 
   useEffect(() => {
     setIsClient(true);
@@ -87,13 +109,65 @@ export default function Product() {
     if (productId)
       getProduct(productId).then((response: IProduct[]) => {
         setProductModel(response[0]);
+        getVariations(productId).then((response: IProductVariations[]) => {
+          setVariationsModel(response);
+        });
+
+        if (response[0].product_type === "simple") {
+          setIsSimpleProduct(true);
+        } else {
+          setIsSimpleProduct(false);
+        }
       });
   }, [productId]);
 
-  // const memoizedProductModel = useMemo(
-  //   () => productModel,
-  //   [productModel.name, productModel.description, productModel.shortDescr]
-  // );
+  useEffect(() => {
+    if (isDuplicate) {
+      setProductModel({
+        ...productModel,
+        id: null,
+        sku: "",
+      });
+      // setVariationsModel([]);
+    }
+  }, [isDuplicate]);
+
+  useEffect(() => {
+    const { name, price, status, product_type, sku } = productModel;
+    if (isSimpleProduct) {
+      if (name && price && status && product_type === "simple") {
+        setHasValidFields(true);
+      } else {
+        setHasValidFields(false);
+      }
+    } else {
+      const isVariationsValid = variationsModel.every((item: any) => {
+        return Object.keys(item).every(
+          (key) =>
+            key === "sale_price" || (item[key] !== null && item[key] !== "")
+        );
+      });
+
+      const skuSet = new Set();
+      const isSkuUnique = !variationsModel.some((variation) => {
+        if (skuSet.has(variation.sku)) {
+          return true;
+        }
+        skuSet.add(variation.sku);
+        return false;
+      });
+
+      setHasValidFields(
+        isVariationsValid &&
+          !isSimpleProduct &&
+          variationsModel.length > 0 &&
+          isSkuUnique &&
+          name !== "" &&
+          product_type === "variable" &&
+          sku !== ""
+      );
+    }
+  }, [productModel, variationsModel]);
 
   return (
     <>
@@ -114,11 +188,14 @@ export default function Product() {
                   setIsSimpleProduct={setIsSimpleProduct}
                   productModel={productModel}
                   setProductModel={setProductModel}
+                  isSimpleProduct={isSimpleProduct}
                 />
                 <ProductData
                   isSimpleProduct={isSimpleProduct}
                   productModel={productModel}
                   setProductModel={setProductModel}
+                  variationsModel={variationsModel}
+                  setVariationsModel={setVariationsModel}
                 />
               </Paper>
             </Grid>
@@ -134,26 +211,52 @@ export default function Product() {
           <BottomNav>
             <div className={styles.actionsContainer}>
               <div className={styles.actionsLeft}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddCircleOutlineIcon />}
-                  aria-label="Create Product"
-                  disabled={!productModel.name || !productModel.price}
-                  onClick={createProduct}
-                >
-                  {/* <CircularProgress color="secondary" size={20} /> */}
-                  Create Product
-                </Button>
-                <Button
-                  variant="contained"
-                  startIcon={<ContentCopyIcon />}
-                  aria-label="Create Product & Duplicate"
-                  disabled={!productModel.name || !productModel.price}
-                  onClick={createDuplicateProduct}
-                  sx={{ marginLeft: "20px" }}
-                >
-                  Create & Duplicate
-                </Button>
+                {!productId ? (
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<AddCircleOutlineIcon />}
+                      aria-label="Create Product"
+                      disabled={!hasValidFields}
+                      onClick={createProduct}
+                    >
+                      {/* <CircularProgress color="secondary" size={20} /> */}
+                      Create Product
+                    </Button>
+                    <Button
+                      variant="contained"
+                      startIcon={<ContentCopyIcon />}
+                      aria-label="Create Product & Duplicate"
+                      disabled={!hasValidFields}
+                      onClick={createDuplicateProduct}
+                      sx={{ marginLeft: "20px" }}
+                    >
+                      Create & Duplicate
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<SaveIcon />}
+                      aria-label="Create Product"
+                      disabled={!hasValidFields}
+                      onClick={updateProduct}
+                    >
+                      Update Product
+                    </Button>
+                    <Button
+                      variant="contained"
+                      startIcon={<ContentCopyIcon />}
+                      aria-label="Create Product & Duplicate"
+                      disabled={!hasValidFields}
+                      onClick={duplicateProduct}
+                      sx={{ marginLeft: "20px" }}
+                    >
+                      Duplicate
+                    </Button>
+                  </>
+                )}
               </div>
 
               <div className={styles.actionsRight}>

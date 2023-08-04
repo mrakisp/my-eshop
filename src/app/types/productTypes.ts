@@ -19,4 +19,19 @@ export interface IProduct {
   created_at?: Date;
   updated_at?: Date;
   category_ids?: string;
+  attributes_ids?: string;
+  grouped_id?: string;
+}
+
+export interface IProductVariations {
+  id?: number | null;
+  prod_id?: number | null;
+  atr_id: number | null;
+  atr_values_id: number | null;
+  stock: number | null;
+  sku: string;
+  price: number | null;
+  sale_price?: number | null;
+  created_at?: Date;
+  updated_at?: Date;
 }

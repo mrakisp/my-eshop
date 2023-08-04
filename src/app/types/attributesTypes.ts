@@ -14,5 +14,5 @@ export interface IAttributeValues {
 export interface IAttributesGrouped {
   attribute_id: number;
   attribute_name: string;
-  attribute_values: any; //{ id: number; name: string }[];
+  attribute_values: any;
 }

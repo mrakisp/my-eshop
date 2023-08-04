@@ -74,13 +74,24 @@ export const POST = async (req: Request, res: Response) => {
   const category_ids = requestBody.model.category_ids
     ? requestBody.model.category_ids
     : null;
+  const attributes_ids = requestBody.model.attributes_ids
+    ? requestBody.model.attributes_ids
+    : null;
+  const grouped_id = requestBody.model.grouped_id
+    ? requestBody.model.grouped_id
+    : null;
+  // const attributes_ids =
+  //   requestBody.model.attributes_ids && product_type === "simple"
+  //     ? requestBody.model.attributes_ids
+  //     : null;
+
   // const c_slug = categoryName
   //   ? typesGreekUtils
   //       .toGreeklish(categoryName?.replace(" ", "-"))
   //       ?.toLowerCase()
   //   : null;
 
-  let message = { completed: false, error: "" };
+  let message = { completed: false, error: "", id: null };
   let dbQuery = "";
   let Qvalues: any[] = [];
 
@@ -111,8 +122,8 @@ export const POST = async (req: Request, res: Response) => {
     // Qvalues = [categoryId];
   } else {
     dbQuery = `INSERT INTO products (name, product_type, price, sale_price, description, short_description, sku, quantity, in_stock, status, image,
-       gallery_images, width, height, length, video, updated_at ,created_at, category_ids) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+       gallery_images, width, height, length, video, updated_at ,created_at, category_ids, attributes_ids, grouped_id) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     Qvalues = [
       name,
       product_type,
@@ -133,6 +144,8 @@ export const POST = async (req: Request, res: Response) => {
       updated_at,
       created_at,
       category_ids,
+      attributes_ids,
+      grouped_id,
     ];
   }
 
@@ -141,15 +154,16 @@ export const POST = async (req: Request, res: Response) => {
     values: Qvalues,
   })
     .then((response: any) => {
+      console.log(response);
       if (response.affectedRows === 1) {
-        message = { completed: true, error: "" };
+        message = { completed: true, error: "", id: response.insertId };
       } else {
-        message = { completed: false, error: response.error };
+        message = { completed: false, error: response.error, id: null };
       }
     })
     .catch((err) => {
       console.log(err);
-      message = { completed: false, error: err };
+      message = { completed: false, error: err, id: null };
     });
 
   return NextResponse.json(message);

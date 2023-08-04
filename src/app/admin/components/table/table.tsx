@@ -16,6 +16,7 @@ interface DataTableProps {
   columns: {
     label: string;
     align: string;
+    action?: JSX.Element;
   }[];
   stickyHeader?: boolean;
 }
@@ -31,7 +32,7 @@ export default function DataTable({
           <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
             {columns.map((column: any) => (
               <TableCell key={column.label} align={column.align} variant="body">
-                {column.label}
+                {column.label} {column.action}
               </TableCell>
             ))}
           </TableRow>

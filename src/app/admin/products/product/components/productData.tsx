@@ -1,3 +1,4 @@
+"use client";
 import {
   useState,
   useCallback,
@@ -5,6 +6,7 @@ import {
   ChangeEvent,
   Dispatch,
   SetStateAction,
+  useMemo,
 } from "react";
 import {
   TextField,
@@ -17,31 +19,43 @@ import {
   FormLabel,
   Skeleton,
   InputAdornment,
+  Divider,
 } from "@mui/material";
-
 import SectionTitle from "@/admin/components/sectionTitle/sectionTitle";
-import ProductVariations from "@/admin/products/product/components/productVariations";
+import Search from "@/admin/components/search/search";
+// import ProductVariationsMultiple from "./productVariationsMultiple";
+import ProductVariations from "./productVariations";
 
-import { IProduct } from "@/types/productTypes";
+import { IProduct, IProductVariations } from "@/types/productTypes";
 import { IAttributesGrouped } from "@/types/attributesTypes";
-
 import { getAttributeValuesGrouped } from "@/services/attributes";
+
+import { removeAccents } from "@/utils/utils";
+
+import styles from "./productData.module.scss";
 
 interface ProductDataProps {
   isSimpleProduct: boolean;
   productModel: IProduct;
   setProductModel: Dispatch<SetStateAction<IProduct>>;
+  variationsModel: IProductVariations[];
+  setVariationsModel: Dispatch<SetStateAction<IProductVariations[]>>;
 }
 
 export default function ProductData({
   isSimpleProduct,
   productModel,
   setProductModel,
+  variationsModel,
+  setVariationsModel,
 }: ProductDataProps) {
-  const [checkedSizes, setCheckedSizes] = useState<string[]>([]);
-  // const [checkedColors, setCheckedColors] = useState<string[]>([]);
+  const [attributeForVariation, setAttributeForVariation] = useState<
+    number | null
+  >();
+  const [checkedAttributes, setCheckedAttributes] = useState<number[]>([]);
   const [attributes, setAttributes] = useState<IAttributesGrouped[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   const fetchAttributes = useCallback(() => {
     setIsLoading(true);
@@ -52,251 +66,272 @@ export default function ProductData({
   }, []);
 
   const handleAttributeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const size = event.target.value;
+    const attributesValues = parseInt(event.target.value);
     if (event.target.checked) {
-      setCheckedSizes((prev) => [...prev, size]);
+      setCheckedAttributes((prev) => [...prev, attributesValues]);
+      setProductModel((prevProductModel) => ({
+        ...prevProductModel,
+        attributes_ids: [
+          ...(prevProductModel.attributes_ids
+            ? prevProductModel.attributes_ids.split(",").map(Number)
+            : []),
+          attributesValues,
+        ].toString(),
+      }));
     } else {
-      setCheckedSizes((prev) => prev.filter((item) => item !== size));
+      setCheckedAttributes((prev) =>
+        prev.filter((item) => item !== attributesValues)
+      );
+      setProductModel((prevProductModel) => ({
+        ...prevProductModel,
+        attributes_ids: prevProductModel.attributes_ids
+          ? prevProductModel.attributes_ids
+              .split(",")
+              .map(Number)
+              .filter((item) => item !== attributesValues)
+              .toString()
+          : "",
+      }));
     }
   };
 
-  // const handleColorChange = (event: ChangeEvent<HTMLInputElement>) => {
-  //   const color = event.target.value;
-  //   if (event.target.checked) {
-  //     setCheckedColors((prev) => [...prev, color]);
-  //   } else {
-  //     setCheckedColors((prev) => prev.filter((item) => item !== color));
-  //   }
-  // };
+  const handleUsedForVariation = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setAttributeForVariation(parseInt(event.target.value));
+    } else {
+      setAttributeForVariation(null);
+    }
+  };
+
+  // Parse attributeValuesArray once when attributes are fetched
+  const parsedAttributes = useMemo(() => {
+    return attributes.map((attr: IAttributesGrouped) => ({
+      ...attr,
+      attribute_values: JSON.parse(attr.attribute_values),
+    }));
+  }, [attributes]);
+
+  const variations = useMemo(() => {
+    return parsedAttributes.filter(
+      (value: IAttributesGrouped) =>
+        value.attribute_id === attributeForVariation
+    );
+  }, [attributeForVariation, checkedAttributes, parsedAttributes]);
+
+  const handleSearch = useCallback((searchValue: string) => {
+    setSearchValue(searchValue);
+  }, []);
 
   useEffect(() => {
     fetchAttributes();
   }, []);
 
+  useEffect(() => {
+    if (!productModel.attributes_ids) {
+      setCheckedAttributes([]);
+    } else {
+      setCheckedAttributes(productModel.attributes_ids.split(",").map(Number));
+    }
+  }, [productModel.attributes_ids]);
+
+  useEffect(() => {
+    if (!variationsModel[0]?.atr_id) {
+      setAttributeForVariation(null);
+    } else {
+      setAttributeForVariation(variationsModel[0]?.atr_id);
+    }
+  }, [variationsModel[0]?.atr_id]);
+
+  // Memoize the JSX elements that depend on productModel or its properties
+  const attributesJSX = useMemo(() => {
+    return isLoading ? (
+      <Skeleton height={300} />
+    ) : (
+      <Stack spacing={2}>
+        {parsedAttributes.map((attr: IAttributesGrouped) => (
+          <FormControl key={attr.attribute_id}>
+            <FormLabel className={styles.attributesLabel}>
+              {attr.attribute_name}
+              {!isSimpleProduct && (
+                <FormControlLabel
+                  sx={{ marginLeft: "auto" }}
+                  control={
+                    <Checkbox
+                      checked={
+                        attributeForVariation &&
+                        attributeForVariation === attr.attribute_id
+                          ? true
+                          : false
+                      }
+                      onChange={handleUsedForVariation}
+                      value={attr.attribute_id}
+                    />
+                  }
+                  label="Used for Variations"
+                />
+              )}
+            </FormLabel>
+            <Divider />
+            <FormGroup row>
+              {attr.attribute_values.map(
+                (value: { id: number; name: string }) => (
+                  <FormControlLabel
+                    className={
+                      searchValue &&
+                      !removeAccents(value.name.toLowerCase()).includes(
+                        removeAccents(searchValue.toLowerCase())
+                      )
+                        ? styles.hidden
+                        : ""
+                    }
+                    key={value.id}
+                    control={
+                      <Checkbox
+                        checked={checkedAttributes.includes(value.id)}
+                        onChange={handleAttributeChange}
+                        value={value.id}
+                      />
+                    }
+                    label={value.name}
+                  />
+                )
+              )}
+            </FormGroup>
+          </FormControl>
+        ))}
+      </Stack>
+    );
+  }, [
+    parsedAttributes,
+    checkedAttributes,
+    isLoading,
+    attributeForVariation,
+    isSimpleProduct,
+    searchValue,
+  ]);
+
   return (
     <Box>
       <Stack direction="row" spacing={2}>
+        {isSimpleProduct && (
+          <>
+            <TextField
+              label="Price"
+              required
+              variant="outlined"
+              value={productModel.price ? productModel.price : ""}
+              InputProps={{
+                inputProps: {
+                  min: 0,
+                },
+                endAdornment: <InputAdornment position="end">€</InputAdornment>,
+              }}
+              type="number"
+              onChange={(e) => {
+                setProductModel({
+                  ...productModel,
+                  price: parseFloat(e.target.value),
+                });
+              }}
+            />
+            <TextField
+              label="Sale Price"
+              variant="outlined"
+              disabled={!productModel.price}
+              value={productModel.sale_price ? productModel.sale_price : ""}
+              InputProps={{
+                inputProps: {
+                  min: 0,
+                },
+                endAdornment: <InputAdornment position="end">€</InputAdornment>,
+              }}
+              type="number"
+              onChange={(e) => {
+                if (
+                  productModel.price &&
+                  (parseFloat(e.target.value) < productModel.price ||
+                    !e.target.value)
+                )
+                  setProductModel({
+                    ...productModel,
+                    sale_price: parseFloat(e.target.value),
+                  });
+              }}
+            />
+          </>
+        )}
         <TextField
-          label="Price"
-          required
-          variant="outlined"
-          value={productModel.price ? productModel.price : ""}
-          InputProps={{
-            inputProps: {
-              min: 0,
-            },
-            endAdornment: <InputAdornment position="end">€</InputAdornment>,
-          }}
-          type="number"
-          onChange={(e) => {
-            setProductModel({
-              ...productModel,
-              price: parseFloat(e.target.value),
-            });
-          }}
-        />
-        <TextField
-          label="Sale Price"
-          variant="outlined"
-          disabled={!productModel.price}
-          value={productModel.sale_price ? productModel.sale_price : ""}
-          InputProps={{
-            inputProps: {
-              min: 0,
-            },
-            endAdornment: <InputAdornment position="end">€</InputAdornment>,
-          }}
-          type="number"
-          onChange={(e) => {
-            if (
-              productModel.price &&
-              (parseFloat(e.target.value) < productModel.price ||
-                !e.target.value)
-            )
-              setProductModel({
-                ...productModel,
-                sale_price: parseFloat(e.target.value),
-              });
-          }}
-        />
-        <TextField
-          label="Sku"
+          label={isSimpleProduct ? "Sku" : "Sku*"}
           variant="outlined"
           value={productModel.sku ? productModel.sku : ""}
           onChange={(e) =>
             setProductModel({ ...productModel, sku: e.target.value })
           }
         />
+        {isSimpleProduct && (
+          <TextField
+            label="Stock"
+            variant="outlined"
+            value={productModel.quantity ? productModel.quantity : ""}
+            onChange={(e) =>
+              setProductModel({
+                ...productModel,
+                quantity: parseInt(e.target.value),
+              })
+            }
+          />
+        )}
         <TextField
-          label="Stock"
+          sx={{ maxWidth: "250px" }}
+          label="Grouped Product Id"
           variant="outlined"
-          value={productModel.quantity ? productModel.quantity : ""}
+          value={productModel.grouped_id ? productModel.grouped_id : ""}
           onChange={(e) =>
             setProductModel({
               ...productModel,
-              quantity: parseFloat(e.target.value),
+              grouped_id: e.target.value,
             })
           }
+          // value={productModel.sku ? productModel.sku : ""}
+          // onChange={(e) =>
+          //   setProductModel({ ...productModel, sku: e.target.value })
+          // }
+          helperText="Set a unique ID for all products to group them as same product."
         />
       </Stack>
-      <SectionTitle title="Attributes" />
-
-      {isLoading ? (
-        <Skeleton height={300} />
+      <SectionTitle
+        title="Attributes"
+        rightArea={<Search handleSearch={handleSearch} isStandAlone={false} />}
+      />
+      {(!isSimpleProduct && productModel.sku) || isSimpleProduct ? (
+        <div className={styles.attributesContainer}>{attributesJSX}</div>
       ) : (
-        <Stack spacing={2}>
-          {attributes &&
-            attributes.map((attr: IAttributesGrouped) => {
-              const attributeValuesArray = JSON.parse(attr.attribute_values);
-
-              return (
-                <FormControl key={attr.attribute_id}>
-                  <FormLabel>{attr.attribute_name}</FormLabel>
-
-                  <FormGroup row>
-                    {attributeValuesArray.map(
-                      (value: { id: number; name: string }) => (
-                        <FormControlLabel
-                          key={value.id}
-                          control={
-                            <Checkbox
-                              checked={checkedSizes.includes(value.name)}
-                              onChange={handleAttributeChange}
-                              value={value.name}
-                            />
-                          }
-                          label={value.name}
-                        />
-                      )
-                    )}
-                  </FormGroup>
-                </FormControl>
-              );
-            })}
-        </Stack>
+        "Fill sku first"
       )}
-      {/* {!isSimpleProduct && (
-        <ProductVariations sizes={checkedSizes} colors={checkedColors} />
-      )} */}
+
+      {!isSimpleProduct &&
+        attributeForVariation &&
+        variations?.length > 0 &&
+        productModel.sku && (
+          <>
+            <SectionTitle title="Attribute Variations" />
+            <ProductVariations
+              parsedAttributes={variations}
+              checkedAttributes={checkedAttributes}
+              variationsModel={variationsModel}
+              setVariationsModel={setVariationsModel}
+              sku={productModel.sku}
+            />
+            {/* <ProductVariationsMultiple
+            parsedAttributes={parsedAttributes}
+            checkedAttributes={checkedAttributes}
+          /> */}
+          </>
+        )}
     </Box>
   );
 }
 
-// import { useState, useEffect, ChangeEvent } from "react";
-// import {
-//   TextField,
-//   Box,
-//   Typography,
-//   Stack,
-//   Paper,
-//   FormGroup,
-//   Checkbox,
-//   FormControl,
-//   FormControlLabel,
-//   FormLabel,
-//   RadioGroup,
-//   Radio,
-// } from "@mui/material";
-
-// import { ProductModel } from "@/admin/products/product/model";
-// import SectionTitle from "@/admin/components/sectionTitle/sectionTitle";
-// // import ProductVariations from "@/admin/products/product/components/productVariations";
-
-// interface ProductDataProps {
-//   isSimpleProduct: boolean;
-// }
-
-// export default function ProductData({ isSimpleProduct }: ProductDataProps) {
-//   const [value, setValue] = useState(ProductModel.product_type);
-
-//   const handleChangePrice = (event: ChangeEvent<HTMLInputElement>) => {
-//     ProductModel.price = parseFloat(event.target.value);
-//   };
-
-//   const handleChangeSalePrice = (event: ChangeEvent<HTMLInputElement>) => {
-//     ProductModel.sale_price = parseFloat(event.target.value);
-//   };
-
-//   const handleChangeSku = (event: ChangeEvent<HTMLInputElement>) => {
-//     ProductModel.sku = event.target.value;
-//   };
-
-//   const handleChangeStock = (event: ChangeEvent<HTMLInputElement>) => {
-//     ProductModel.quantity = parseFloat(event.target.value);
-//   };
-
-//   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-//   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-
-//   const handleSizeChange = (event: ChangeEvent<HTMLInputElement>) => {
-//     setSelectedSize(event.target.value);
-//   };
-
-//   const handleColorChange = (event: ChangeEvent<HTMLInputElement>) => {
-//     setSelectedColor(event.target.value);
-//   };
-
-//   return (
-//     <Box>
-//       <Stack direction="row" spacing={2}>
-//         <TextField
-//           label="Price"
-//           variant="outlined"
-//           onChange={handleChangePrice}
-//         />
-//         <TextField
-//           label="Sale Price"
-//           variant="outlined"
-//           onChange={handleChangeSalePrice}
-//         />
-//         <TextField label="Sku" variant="outlined" onChange={handleChangeSku} />
-//         <TextField
-//           label="Stock"
-//           variant="outlined"
-//           onChange={handleChangeStock}
-//         />
-//       </Stack>
-//       <SectionTitle title="Attributes" />
-
-//       <Stack spacing={2}>
-//         <FormControl component="fieldset">
-//           <FormLabel>Size</FormLabel>
-
-//           <RadioGroup
-//             row
-//             aria-label="size"
-//             name="size"
-//             value={selectedSize}
-//             onChange={handleSizeChange}
-//           >
-//             <FormControlLabel value="small" control={<Radio />} label="Small" />
-//             <FormControlLabel
-//               value="medium"
-//               control={<Radio />}
-//               label="Medium"
-//             />
-//           </RadioGroup>
-//         </FormControl>
-//         <FormControl component="fieldset">
-//           <FormLabel>Color</FormLabel>
-
-//           <RadioGroup
-//             row
-//             aria-label="color"
-//             name="color"
-//             value={selectedColor}
-//             onChange={handleColorChange}
-//           >
-//             <FormControlLabel value="black" control={<Radio />} label="Black" />
-//             <FormControlLabel value="red" control={<Radio />} label="Red" />
-//           </RadioGroup>
-//         </FormControl>
-//       </Stack>
-
-//       {/* {!isSimpleProduct && (
-//         <ProductVariations size={selectedSize} color={selectedColor} />
-//         // <ProductVariations sizes={checkedSizes} colors={checkedColors} />
-//       )} */}
-//     </Box>
-//   );
-// }
+// ta attributes rows prepei na exoun ena checkbox gia used sta variations. Mono ena attribute row mporei na einai selected gia variations kai tote gia kathe checked value tha prepei na dimiourgei ena row
+// otan epilexthei auto to checkbox mazi me ta values tou prepei na pernaei sto product_variations ws eggrafh
+// ta proioda me idio top sku tha ginode match gia ta xrwmata
