@@ -20,7 +20,10 @@ import {
   Skeleton,
   InputAdornment,
   Divider,
+  Alert,
+  Tooltip,
 } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 import SectionTitle from "@/admin/components/sectionTitle/sectionTitle";
 import Search from "@/admin/components/search/search";
 // import ProductVariationsMultiple from "./productVariationsMultiple";
@@ -292,11 +295,23 @@ export default function ProductData({
               grouped_id: e.target.value,
             })
           }
-          // value={productModel.sku ? productModel.sku : ""}
-          // onChange={(e) =>
-          //   setProductModel({ ...productModel, sku: e.target.value })
-          // }
-          helperText="Set a unique ID for all products to group them as same product."
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <Tooltip
+                  sx={{ cursor: "pointer" }}
+                  arrow
+                  placement="top"
+                  title="If we have same products but they have different attributes we need to link them in order to matched in the shop Front. 
+                  For example we have 1 shoe in blue color with size xl,xxl and we have another same shoe with color red and size xl,xxl. Add the same Grouped Product ID like 'sku1' to both shoes and they will linked. 
+                  As a result a mini image of every grouped product will be visible in each product page and user will be able to see all the colors & select the desired one."
+                >
+                  <InfoIcon />
+                </Tooltip>
+              </InputAdornment>
+            ),
+          }}
+          helperText="Set a unique ID for related products to group them."
         />
       </Stack>
       <SectionTitle
@@ -306,7 +321,9 @@ export default function ProductData({
       {(!isSimpleProduct && productModel.sku) || isSimpleProduct ? (
         <div className={styles.attributesContainer}>{attributesJSX}</div>
       ) : (
-        "Fill sku first"
+        <Alert severity="warning">
+          Fill Sku first to set attributes & variations
+        </Alert>
       )}
 
       {!isSimpleProduct &&

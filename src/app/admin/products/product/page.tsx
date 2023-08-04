@@ -7,13 +7,14 @@ import {
   Grid,
   Paper,
   Typography,
-  CircularProgress,
+  // CircularProgress,
 } from "@mui/material";
 
 import BottomNav from "@/admin/components/bottomNav/bottomNav";
+import LoadingFullScreenProps from "@/admin/components/loadingFullScreen/loadingFullScreen";
 import {
   ProductModel,
-  ProductVariationsModel,
+  // ProductVariationsModel,
 } from "@/admin/products/product/model";
 import ProductBasicFields from "./components/basicFields";
 import ProductType from "./components/productType";
@@ -27,7 +28,7 @@ import SaveIcon from "@mui/icons-material/Save";
 
 import { IProduct, IProductVariations } from "@/types/productTypes";
 
-import { addProduct, getProduct } from "@/services/product";
+import { addProduct, getProduct, deleteProduct } from "@/services/product";
 
 import { addVariations, getVariations } from "@/services/variations";
 
@@ -39,6 +40,8 @@ export default function Product() {
   const productId = productIdParams.get("productId");
   const isDuplicate = productIdParams.get("duplicate");
   const [isClient, setIsClient] = useState(false);
+  const [isLoadingFullScreen, setIsLoadingFullScreen] = useState(false);
+
   const [hasValidFields, setHasValidFields] = useState(false);
   const [productModel, setProductModel] = useState<IProduct>(ProductModel);
   const [variationsModel, setVariationsModel] = useState<IProductVariations[]>(
@@ -50,9 +53,11 @@ export default function Product() {
   );
 
   const createProduct = useCallback(() => {
-    // console.log(productModel);
-    // console.log(variationsModel);
+    console.log(productModel);
+    console.log(variationsModel);
+
     if (!hasValidFields) return;
+    setIsLoadingFullScreen(true);
     addProduct(productModel).then((response: IProduct) => {
       if (!isSimpleProduct && variationsModel?.length > 0) {
         addVariations(response.id, variationsModel).then(
@@ -60,38 +65,57 @@ export default function Product() {
             setProductModel(ProductModel);
             setVariationsModel([]);
             setIsSimpleProduct(true);
+            setIsLoadingFullScreen(false);
           }
         );
       } else {
         setProductModel(ProductModel);
         setIsSimpleProduct(true);
+        setIsLoadingFullScreen(false);
       }
     });
   }, [productModel, variationsModel]);
 
   const createDuplicateProduct = useCallback(() => {
     if (!hasValidFields) return;
+    setIsLoadingFullScreen(true);
     addProduct(productModel).then((response: IProduct) => {
       if (!isSimpleProduct && variationsModel?.length > 0) {
         addVariations(response.id, variationsModel).then(
-          (response: IProduct) => {}
+          (response: IProduct) => {
+            setIsLoadingFullScreen(false);
+          }
         );
+      } else {
+        setIsLoadingFullScreen(false);
       }
     });
   }, [productModel, variationsModel]);
 
-  const deleteProduct = useCallback(() => {
-    // addProduct(productModel).then((response: IProduct) => {
-    //   setProductModel(ProductModel);
-    // });
-  }, []);
+  const handleDeleteProduct = useCallback(() => {
+    if (!productModel.id || !productId) {
+      return;
+    }
+    setIsLoadingFullScreen(true);
+    deleteProduct(productModel.id).then((response: IProduct) => {
+      setProductModel(ProductModel);
+      setVariationsModel([]);
+      setIsSimpleProduct(true);
+      setIsLoadingFullScreen(false);
+      router.push("product");
+    });
+  }, [productId, productModel.id]);
 
   const updateProduct = useCallback(() => {
+    if (!productModel.id || !productId) {
+      return;
+    }
     if (!hasValidFields) return;
+    setIsLoadingFullScreen(true);
     // addProduct(productModel).then((response: IProduct) => {
     //   setProductModel(ProductModel);
     // });
-  }, []);
+  }, [productId, productModel.id]);
 
   const duplicateProduct = useCallback(() => {
     // setProductModel({
@@ -220,7 +244,6 @@ export default function Product() {
                       disabled={!hasValidFields}
                       onClick={createProduct}
                     >
-                      {/* <CircularProgress color="secondary" size={20} /> */}
                       Create Product
                     </Button>
                     <Button
@@ -266,7 +289,7 @@ export default function Product() {
                     startIcon={<DeleteIcon />}
                     aria-label="Delete Product"
                     color="error"
-                    onClick={deleteProduct}
+                    onClick={handleDeleteProduct}
                   >
                     Delete Product
                   </Button>
@@ -274,6 +297,7 @@ export default function Product() {
               </div>
             </div>
           </BottomNav>
+          <LoadingFullScreenProps open={isLoadingFullScreen} />
         </>
       )}
     </>

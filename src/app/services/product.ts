@@ -47,18 +47,17 @@ export async function updateProduct(attrName: string, attrId: number) {
   return res.json();
 }
 
-export async function deleteProduct(attrId: number) {
+export async function deleteProduct(id: number) {
   const postData = {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      attrId: attrId,
+      id: id,
     }),
   };
-
-  const res = await fetch(url + "?type=delete", postData);
+  const res = await fetch(url + `/${id}/?type=delete`, postData);
 
   return res.json();
 }

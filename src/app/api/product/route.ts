@@ -154,7 +154,6 @@ export const POST = async (req: Request, res: Response) => {
     values: Qvalues,
   })
     .then((response: any) => {
-      console.log(response);
       if (response.affectedRows === 1) {
         message = { completed: true, error: "", id: response.insertId };
       } else {

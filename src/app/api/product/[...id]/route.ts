@@ -24,3 +24,30 @@ export const GET = async (
 
   return NextResponse.json(product);
 };
+
+export const POST = async (
+  req: Request,
+  { params }: { params: { id: string } }
+) => {
+  const { searchParams } = new URL(req.url);
+  const type = searchParams.get("type");
+
+  const id = params.id;
+
+  let dbQuery;
+  let Qvalues;
+  if (type && type === "delete") {
+    dbQuery = `DELETE FROM products WHERE id= ?`;
+    Qvalues = [id[0]];
+  } else {
+    dbQuery = `SELECT * FROM products WHERE id= ?`;
+    Qvalues = [id[0]];
+  }
+
+  const product = await query({
+    query: dbQuery,
+    values: Qvalues,
+  });
+
+  return NextResponse.json(product);
+};
