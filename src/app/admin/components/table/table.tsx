@@ -19,17 +19,27 @@ interface DataTableProps {
     action?: JSX.Element;
   }[];
   stickyHeader?: boolean;
+  tableContainerMaxHeight?: number;
 }
 export default function DataTable({
   children,
   columns,
   stickyHeader = true,
+  tableContainerMaxHeight,
 }: DataTableProps) {
   return (
-    <TableContainer>
+    <TableContainer
+      sx={{
+        maxHeight: tableContainerMaxHeight ? tableContainerMaxHeight : "auto",
+      }}
+    >
       <Table stickyHeader={stickyHeader} size="small">
         <TableHead>
-          <TableRow sx={{ "&:last-child td, &:last-child th": { border: 0 } }}>
+          <TableRow
+            sx={{
+              "&:last-child td, &:last-child th": { border: 0 },
+            }}
+          >
             {columns.map((column: any) => (
               <TableCell key={column.label} align={column.align} variant="head">
                 {column.label} {column.action}

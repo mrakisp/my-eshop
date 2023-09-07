@@ -196,7 +196,9 @@ export default function Product() {
   return (
     <>
       <Paper elevation={3} sx={{ padding: "15px 25px", margin: "0 0 25px 0" }}>
-        <Typography variant="h5">Add new Product</Typography>
+        <Typography variant="h5">
+          {productId ? "Update Product" : "Add new Product"}
+        </Typography>
       </Paper>
 
       {isClient && (

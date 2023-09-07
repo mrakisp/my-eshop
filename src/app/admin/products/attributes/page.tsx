@@ -182,7 +182,11 @@ function Attributes() {
                   reset={actionMessage.open}
                 />
 
-                <DataTable columns={memoizedColumns}>
+                <DataTable
+                  columns={memoizedColumns}
+                  stickyHeader={true}
+                  tableContainerMaxHeight={600}
+                >
                   {memoizedAttributes?.map((attribute) => (
                     <TableRow
                       key={attribute.id}

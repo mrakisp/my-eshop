@@ -1,4 +1,5 @@
 import { IProduct } from "@/types/productTypes";
+
 const url = "/api/products";
 
 export async function getProducts(pagination: {
@@ -16,6 +17,33 @@ export async function getProducts(pagination: {
   endpoint += `?pageNumber=${pagination.page + 1}&pageSize=${
     pagination.perPage
   }`;
+
+  const res = await fetch(endpoint, postData);
+
+  return res.json();
+}
+
+export async function searchProducts(searchValue: string) {
+  const postData = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+
+  const res = await fetch(url + `/search?search=${searchValue}`, postData);
+
+  return res.json();
+}
+
+export async function getProductsVariations(id: number) {
+  const postData = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+  const endpoint = url + `/${id}`;
 
   const res = await fetch(endpoint, postData);
 

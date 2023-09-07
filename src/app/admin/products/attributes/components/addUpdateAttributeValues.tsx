@@ -186,7 +186,11 @@ export default function AddUpdateAttributeValues({
               <Skeleton height={300} />
             ) : (
               <>
-                <DataTable columns={memoizedColumns}>
+                <DataTable
+                  columns={memoizedColumns}
+                  stickyHeader={true}
+                  tableContainerMaxHeight={600}
+                >
                   {memoizedAttributeValues?.map((value) => (
                     <TableRow
                       key={value.id}

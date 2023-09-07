@@ -14,14 +14,17 @@ export const GET = async (req: Request) => {
   const offset = (pageNumber - 1) * pageSize;
 
   const products = await query({
-    //   query: `SELECT p.*,
-    //   (SELECT COUNT(*) FROM products) AS totalProductsCount,
-    //   pv.*
-    // FROM products p
-    // LEFT JOIN product_variations pv ON p.id = pv.prod_id
-    // LIMIT ?, ?`,
-    query:
-      "SELECT *, (SELECT COUNT(*) FROM products) AS totalProductsCount FROM products ORDER BY created_at DESC, grouped_id LIMIT ?, ? ",
+    query: `SELECT 
+    products.*,
+    (SELECT COUNT(*) FROM products) AS totalProductsCount,
+    IFNULL(GROUP_CONCAT(product_categories.category_name), '') AS category_names
+    FROM products
+    LEFT JOIN product_categories ON 
+    FIND_IN_SET(product_categories.category_id, products.category_ids)
+    GROUP BY products.id
+    ORDER BY created_at DESC, grouped_id
+    LIMIT ?, ?`,
+    // "SELECT *, (SELECT COUNT(*) FROM products) AS totalProductsCount FROM products ORDER BY created_at DESC, grouped_id LIMIT ?, ?",
     values: [offset, pageSize],
   });
 

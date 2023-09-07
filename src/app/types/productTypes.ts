@@ -21,6 +21,7 @@ export interface IProduct {
   category_ids?: string;
   attributes_ids?: string;
   grouped_id?: string;
+  category_names?: string;
 }
 
 export interface IProductVariations {
@@ -34,4 +35,5 @@ export interface IProductVariations {
   sale_price?: number | null;
   created_at?: Date;
   updated_at?: Date;
+  attribute_name?: string;
 }
